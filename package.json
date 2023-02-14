@@ -1,0 +1,29 @@
+{
+  "name": "inteco_cli",
+  "version": "0.1.1",
+  "description": "CLI-Tools for Inteco",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "author": "AH1",
+  "license": "ISC",
+  "dependencies": {
+    "adb-ts": "^2.1.2",
+    "application-config": "^2.0.0",
+    "chalk": "^5.0.1",
+    "cli-meow-help": "^3.1.0",
+    "meow": "^10.1.5",
+    "mysql-await": "^2.1.8",
+    "n-readlines": "^1.0.1",
+    "node-7z": "^3.0.0",
+    "ora": "^6.1.0",
+    "prompts": "^2.4.2",
+    "properties-parser": "^0.3.1",
+    "yaml": "^1.10.2"
+  },
+  "bin": {
+    "inteco": "src/index.js"
+  }
+}

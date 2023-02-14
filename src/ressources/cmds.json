@@ -1,0 +1,23 @@
+{
+    "import_db":{
+        "desc": "Imports a DB-Export (in Archive) to the local MYSQL-Instance"
+    },
+    "config_rewrite":{
+        "desc": "Rewrites WEGAS-Config"
+    },
+    "t003_rewrite":{
+        "desc": "Rewrites t003 in DB"
+    },
+    "dump_table_to_csv":{
+        "desc": "Dumps a specific table from multiple SQL-Exports to a CSV"
+    },
+    "adb_bridge":{
+        "desc": "Activates an ADB-Bridge-Connection to an Android-Device"
+    },
+    "adb_intent":{
+        "desc": "Sends a configurable Intent to an Android-Device"
+    },
+    "set_cli_config":{
+        "desc": "Configure the Inteco CLI"
+    }
+}
