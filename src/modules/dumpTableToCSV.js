@@ -38,6 +38,8 @@ export default async function dumpTableToCSV() {
             await extractDumpsFromArchive(archive)
         }
 
+        console.log()
+
         // Read Files and create csv
         let files = fs.readdirSync(process.cwd(), { withFileTypes: true }).filter(dirent => dirent.isFile() && dirent.name.split(".")[dirent.name.split(".").length-1] == "sql").map(dirent => { return dirent.name });
 
