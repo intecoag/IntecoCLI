@@ -5,6 +5,9 @@ import ora from "ora";
 import { DB } from "../utils/db/DB.js";
 import { exec, execFile, execFileSync, execSync } from "child_process";
 import { Config } from "../utils/config/config.js";
+import chalk from "chalk";
+import path from "path";
+import sevenBin from '7zip-bin'
 
 
 export default async function importDB(cli){
@@ -12,7 +15,7 @@ export default async function importDB(cli){
 
     const config = await Config.getConfig();
 
-    const archivesDirectories = readdirSync("./", { withFileTypes: true }).filter(dirent => dirent.isFile()).map(dirent => { return { title: dirent.name } })
+    const archivesDirectories = readdirSync(process.cwd(), { withFileTypes: true }).filter(dirent => dirent.isFile()).map(dirent => { return { title: dirent.name } })
 
     let success = true;
 
@@ -43,14 +46,16 @@ export default async function importDB(cli){
         console.log()
         const spinnerZIP = ora('Unpacking Archive').start();
         
-        rmSync("./dump", {recursive:true, force:true})
-        mkdirSync("./dump", {recursive:true})
+        rmSync("."+path.sep+"dump", {recursive:true, force:true})
+        mkdirSync("."+path.sep+"/dump", {recursive:true})
 
-        const unpack = Seven.extract(results.archive, "./dump")
+        const unpack = Seven.extract(results.archive, "."+path.sep+"dump", {
+            $bin: sevenBin.path7za
+        })
 
         unpack.on('end', async()=>{
-            const filename = readdirSync("./dump")[0]
-            renameSync("./dump/"+filename, "./dump/dump.sql")
+            const filename = readdirSync("."+path.sep+"dump")[0]
+            renameSync("."+path.sep+"dump"+path.sep+""+filename, "."+path.sep+"dump"+path.sep+"dump.sql")
             spinnerZIP.succeed("Archive unpacked")
 
             const spinnerImport = ora('Importing DB').start();
@@ -58,11 +63,11 @@ export default async function importDB(cli){
             await DB.executeQuery("DROP DATABASE IF EXISTS "+results.dbName);
             await DB.executeQuery("CREATE DATABASE "+results.dbName);
     
-            exec("mysql -u "+config.dbUser+" -p"+config.dbPassword+" "+results.dbName+" < dump/dump.sql", (error, stdout, stderr) => {
+            exec("mysql -u "+config.dbUser+" -p"+config.dbPassword+" "+results.dbName+" < dump"+path.sep+"dump.sql", (error, stdout, stderr) => {
                 spinnerImport.succeed("Database imported")
 
                 const deleteSpinner = ora("Delete temporary dump").start()
-                rmSync("./dump", {recursive:true, force:true})
+                rmSync("."+path.sep+"dump", {recursive:true, force:true})
                 deleteSpinner.succeed("Dump deleted")
                 console.log()
             })

@@ -3,7 +3,8 @@ import nReadlines from 'n-readlines';
 import prompts from "prompts";
 import path from "path";
 import ora from "ora";
-
+import Seven from 'node-7z'
+import sevenBin from '7zip-bin'
 
 
 export default async function dumpTableToCSV() {
@@ -30,7 +31,15 @@ export default async function dumpTableToCSV() {
 
     if (success) {
         console.log()
-        let files = fs.readdirSync(process.cwd(), { withFileTypes: true }).filter(dirent => dirent.isFile()).map(dirent => { return dirent.name });
+
+        // Unpack archives
+        let archives = fs.readdirSync(process.cwd(), { withFileTypes: true }).filter(dirent => dirent.isFile() && dirent.name.split(".")[dirent.name.split(".").length-1] == "gz").map(dirent => { return dirent.name });
+        for (const archive of archives){
+            await extractDumpsFromArchive(archive)
+        }
+
+        // Read Files and create csv
+        let files = fs.readdirSync(process.cwd(), { withFileTypes: true }).filter(dirent => dirent.isFile() && dirent.name.split(".")[dirent.name.split(".").length-1] == "sql").map(dirent => { return dirent.name });
 
         await Promise.all(files.map(async (file) => {
             await createCSVDump(file, results.table)
@@ -38,6 +47,44 @@ export default async function dumpTableToCSV() {
 
         console.log()
     }
+}
+
+function getPromiseFromEvent(item, event) {
+    return new Promise((resolve) => {
+      const listener = (data) => {
+        resolve(data);
+      }
+      item.on(event, listener);
+    })
+  }
+
+async function extractDumpsFromArchive(archive){
+    const spinnerZIP = ora('Unpacking Archive: '+archive).start();
+
+    const list = Seven.list(process.cwd() + path.sep + archive, {
+        $bin: sevenBin.path7za
+    })
+
+    const data = await getPromiseFromEvent(list, "data")
+
+    let file = data.file
+
+    if(file.split(".").length == 1){
+        const rename = Seven.rename(process.cwd() + path.sep + archive,[[file, file+".sql"]], {
+            $bin: sevenBin.path7za
+        })
+
+        await getPromiseFromEvent(rename, "end")
+    }  
+
+    const unpack = Seven.extract(process.cwd() + path.sep + archive,"."+path.sep, {
+        $bin: sevenBin.path7za
+    })
+
+    await getPromiseFromEvent(unpack, "end")
+
+    spinnerZIP.succeed("Archive unpacked: "+archive)
+
 }
 
 async function createCSVDump(file, table) {

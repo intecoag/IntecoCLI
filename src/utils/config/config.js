@@ -16,6 +16,28 @@ export class Config{
             // Default Configuration
             this.configData = defaultCFG
             this.config.write(defaultCFG)
+        }else{
+            let data = this.configData;
+            let hasChange = false;
+            Object.keys(defaultCFG).forEach(key => {
+                // Write new config-entries if not present
+                if(!Object.keys(this.configData).includes(key)){
+                    data[key] = defaultCFG[key];
+                    hasChange = true;
+                }
+            })
+
+            Object.keys(this.configData).forEach(key => {
+                if(!Object.keys(defaultCFG).includes(key)){
+                    delete data[key]
+                    hasChange = true;
+                }
+            })
+
+            if(hasChange){
+                this.configData = data;
+                this.config.write(data);
+            }
         }
     }
 

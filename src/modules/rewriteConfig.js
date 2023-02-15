@@ -6,6 +6,7 @@ import YAML from 'yaml'
 import chalk from "chalk";
 import { Config } from "../utils/config/config.js";
 import { DB } from "../utils/db/DB.js";
+import path from "path";
 
 
 
@@ -50,23 +51,23 @@ async function configRewrite(cli) {
 
     if (success) {
         // Rewrite jwegas.properties
-        const editorJwegasProperties = createEditor(homedir + "/jwegas.properties")
+        const editorJwegasProperties = createEditor(homedir + path.sep+"jwegas.properties")
         editorJwegasProperties.set("user.mandant", responses.mnr.toString());
         editorJwegasProperties.save();
 
         // Rewrite wegas.properties
-        const editorWegasProperties = createEditor(config.configIndividualPath + "/wegas.properties")
+        const editorWegasProperties = createEditor(config.configIndividualPath + path.sep+"wegas.properties")
         editorWegasProperties.set("db.database", responses.dbName);
         editorWegasProperties.save();
 
         // Rewrite path.yaml
-        const content = readFileSync(config.configIndividualPath + "/path.yaml", "utf-8");
+        const content = readFileSync(config.configIndividualPath +path.sep+"path.yaml", "utf-8");
 
         const doc = YAML.parseDocument(content)
 
         doc.set("pathIndividual", config.configIndividualPathWrite + "\\\\" + responses.configName + "\\\\")
 
-        writeFileSync(config.configIndividualPath + "/path.yaml", doc.toString());
+        writeFileSync(config.configIndividualPath +path.sep+"path.yaml", doc.toString());
 
         console.log()
         console.log(chalk.green("Config-Rewrite successful!"))
