@@ -33,7 +33,7 @@ export default async function dumpTableToCSV() {
         console.log()
 
         // Unpack archives
-        let archives = fs.readdirSync(process.cwd(), { withFileTypes: true }).filter(dirent => dirent.isFile() && dirent.name.split(".")[dirent.name.split(".").length-1] == "gz").map(dirent => { return dirent.name });
+        let archives = fs.readdirSync(process.cwd(), { withFileTypes: true }).filter(dirent => dirent.isFile() && (dirent.name.split(".")[dirent.name.split(".").length-1] == "gz") || (dirent.name.split(".")[dirent.name.split(".").length-1] == "7z")).map(dirent => { return dirent.name });
         for (const archive of archives){
             await extractDumpsFromArchive(archive)
         }
