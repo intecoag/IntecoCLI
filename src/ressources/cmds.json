@@ -19,5 +19,8 @@
     },
     "set_cli_config":{
         "desc": "Configure the Inteco CLI"
+    },
+    "graphql_schema_export":{
+        "desc": "Dump the Graph-QL-Schema from an Endpoint"
     }
 }

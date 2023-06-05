@@ -8,6 +8,7 @@ import importDB from './modules/importDB.js';
 import rewrite from './modules/rewriteConfig.js';
 import writeCLIConfig from './modules/setCLIConfig.js';
 import t003Rewrite from './modules/t003Rewrite.js';
+import graphqlSchemaExport from './modules/graphqlSchemaExport.js';
 
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
@@ -47,7 +48,10 @@ switch (cli.input[0]) {
         break;   
     case "dump_table_to_csv":
         dumpTableToCSV()
-        break;            
+        break;  
+    case "graphql_schema_export":
+        graphqlSchemaExport();
+        break;                
     default:
         cli.showHelp()
         break;
