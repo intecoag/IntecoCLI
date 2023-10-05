@@ -22,5 +22,8 @@
     },
     "graphql_schema_export":{
         "desc": "Dump the Graph-QL-Schema from an Endpoint"
+    },
+    "csv_merge":{
+        "desc": "Merge multiple CSV-Files (with same headers) into single file (with optional filter)"
     }
 }
