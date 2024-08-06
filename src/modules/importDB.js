@@ -64,11 +64,17 @@ export default async function importDB(cli){
             await DB.executeQuery("CREATE DATABASE "+results.dbName);
     
             exec("mysql -u "+config.dbUser+" -p"+config.dbPassword+" "+results.dbName+" < dump"+path.sep+"dump.sql", (error, stdout, stderr) => {
-                spinnerImport.succeed("Database imported")
+                if(error != null){
+                    spinnerImport.fail("Database-Import failed!")
+                    console.log(error)
+                }else{
+                    spinnerImport.succeed("Database imported")
 
-                const deleteSpinner = ora("Delete temporary dump").start()
-                rmSync("."+path.sep+"dump", {recursive:true, force:true})
-                deleteSpinner.succeed("Dump deleted")
+                    const deleteSpinner = ora("Delete temporary dump").start()
+                    rmSync("."+path.sep+"dump", {recursive:true, force:true})
+                    deleteSpinner.succeed("Dump deleted")
+                }
+
                 console.log()
             })
         })
