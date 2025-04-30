@@ -25,5 +25,11 @@
     },
     "csv_merge":{
         "desc": "Merge multiple CSV-Files (with same headers) into single file (with optional filter)"
+    },
+    "dump_db_mand":{
+        "desc": "Export a DB-Dump for a single Mandant"
+    },
+    "delete_db_mand":{
+        "desc": "Delete all Mandant-Data from a db"
     }
 }

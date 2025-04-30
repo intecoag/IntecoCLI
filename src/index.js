@@ -10,12 +10,15 @@ import writeCLIConfig from './modules/setCLIConfig.js';
 import t003Rewrite from './modules/t003Rewrite.js';
 import graphqlSchemaExport from './modules/graphqlSchemaExport.js';
 import csvMerge from './modules/csvMerger.js';
+import dumpDBMand from './modules/dumpDB.js';
+import deleteDBMand from './modules/deleteDB.js';
 
 import commands from "./ressources/cmds.json" with {type: 'json'};
 
+
 const helpText = cliMeowHelp({
-	name: `inteco`,
-	commands
+    name: `inteco`,
+    commands
 });
 
 const cli = meow(helpText, {
@@ -31,28 +34,34 @@ switch (cli.input[0]) {
         break;
     case "download_db":
         downloadDB(cli)
-        break;  
+        break;
     case "t003_rewrite":
         t003Rewrite(cli)
         break;
     case "adb_bridge":
         adb_bridge()
-        break;   
+        break;
     case "adb_intent":
         adb_intent()
-        break;   
+        break;
     case "set_cli_config":
         writeCLIConfig()
-        break;   
+        break;
     case "dump_table_to_csv":
         dumpTableToCSV()
-        break; 
+        break;
     case "csv_merge":
         csvMerge();
-        break;            
+        break;
     case "graphql_schema_export":
         graphqlSchemaExport();
-        break;                
+        break;
+    case "dump_db_mand":
+        dumpDBMand(cli);
+        break;
+    case "delete_db_mand":
+        deleteDBMand();
+        break;
     default:
         cli.showHelp()
         break;
