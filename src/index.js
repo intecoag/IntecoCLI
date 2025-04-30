@@ -14,10 +14,11 @@ import dumpDBMand from './modules/dumpDB.js';
 import deleteDBMand from './modules/deleteDB.js';
 
 import commands from "./ressources/cmds.json" with {type: 'json'};
-
+import packageJson from "../package.json" with {type: 'json'}
 
 const helpText = cliMeowHelp({
     name: `inteco`,
+    desc: "Version: "+packageJson.version,
     commands
 });
 
