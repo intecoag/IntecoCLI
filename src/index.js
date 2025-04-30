@@ -11,15 +11,12 @@ import t003Rewrite from './modules/t003Rewrite.js';
 import graphqlSchemaExport from './modules/graphqlSchemaExport.js';
 import csvMerge from './modules/csvMerger.js';
 
-import { createRequire } from "module";
-const require = createRequire(import.meta.url);
-const commands = require("./ressources/cmds.json");
+import commands from "./ressources/cmds.json" with {type: 'json'};
 
 const helpText = cliMeowHelp({
 	name: `inteco`,
 	commands
 });
-
 
 const cli = meow(helpText, {
     importMeta: import.meta,

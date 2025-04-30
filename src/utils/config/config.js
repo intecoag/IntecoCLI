@@ -1,7 +1,5 @@
 import cfg from "application-config"
-import { createRequire } from "module";
-const require = createRequire(import.meta.url);
-const defaultCFG = require("./default.json");
+import defaultCFG from './default.json' with {type: 'json'};
 
 export class Config{
     static config = cfg("inteco_cli");
