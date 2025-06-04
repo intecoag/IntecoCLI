@@ -15,7 +15,9 @@
     "application-config": "^2.0.0",
     "chalk": "^5.0.1",
     "cli-meow-help": "^3.1.0",
+    "cli-table3": "^0.6.5",
     "csv-parser": "^3.0.0",
+    "fuzzysort": "^3.1.0",
     "graphql": "^16.6.0",
     "meow": "^10.1.5",
     "mysql-await": "^2.1.8",
@@ -24,6 +26,7 @@
     "ora": "^6.1.0",
     "prompts": "^2.4.2",
     "properties-parser": "^0.3.1",
+    "readline": "^1.3.0",
     "yaml": "^1.10.2"
   },
   "bin": {

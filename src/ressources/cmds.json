@@ -1,35 +1,38 @@
 {
-    "import_db":{
+    "import_db": {
         "desc": "Imports a DB-Export (in Archive) to the local MYSQL-Instance"
     },
-    "config_rewrite":{
+    "config_rewrite": {
         "desc": "Rewrites WEGAS-Config"
     },
-    "t003_rewrite":{
+    "t003_rewrite": {
         "desc": "Rewrites t003 in DB"
     },
-    "dump_table_to_csv":{
+    "dump_table_to_csv": {
         "desc": "Dumps a specific table from multiple SQL-Exports to a CSV"
     },
-    "adb_bridge":{
+    "adb_bridge": {
         "desc": "Activates an ADB-Bridge-Connection to an Android-Device"
     },
-    "adb_intent":{
+    "adb_intent": {
         "desc": "Sends a configurable Intent to an Android-Device"
     },
-    "set_cli_config":{
+    "set_cli_config": {
         "desc": "Configure the Inteco CLI"
     },
-    "graphql_schema_export":{
+    "graphql_schema_export": {
         "desc": "Dump the Graph-QL-Schema from an Endpoint"
     },
-    "csv_merge":{
+    "csv_merge": {
         "desc": "Merge multiple CSV-Files (with same headers) into single file (with optional filter)"
     },
-    "dump_db_mand":{
+    "dump_db_mand": {
         "desc": "Export a DB-Dump for a single Mandant"
     },
-    "delete_db_mand":{
+    "delete_db_mand": {
         "desc": "Delete all Mandant-Data from a db"
+    },
+    "extd_search": {
+        "desc": "Search EXTD/EXTI interactively with full text search"
     }
 }
