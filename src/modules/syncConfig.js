@@ -58,10 +58,12 @@ export default async function syncConfig() {
             }
         },
         {
-            type: 'confirm',
+            type: 'toggle',
             name: 'dryRun',
             message: 'Dry run? (show what would happen without making changes)',
-            initial: false
+            initial: false,
+            active: 'yes',
+            inactive: 'no'
         },
         {
             type: 'select',
