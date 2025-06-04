@@ -5,26 +5,11 @@
     "config_rewrite": {
         "desc": "Rewrites WEGAS-Config"
     },
+    "sync_config": {
+        "desc": "Synchronize Config/ConfigIndividual-Folders between Work and Repository (Eclipse-Repo)"
+    },
     "t003_rewrite": {
         "desc": "Rewrites t003 in DB"
-    },
-    "dump_table_to_csv": {
-        "desc": "Dumps a specific table from multiple SQL-Exports to a CSV"
-    },
-    "adb_bridge": {
-        "desc": "Activates an ADB-Bridge-Connection to an Android-Device"
-    },
-    "adb_intent": {
-        "desc": "Sends a configurable Intent to an Android-Device"
-    },
-    "set_cli_config": {
-        "desc": "Configure the Inteco CLI"
-    },
-    "graphql_schema_export": {
-        "desc": "Dump the Graph-QL-Schema from an Endpoint"
-    },
-    "csv_merge": {
-        "desc": "Merge multiple CSV-Files (with same headers) into single file (with optional filter)"
     },
     "dump_db_mand": {
         "desc": "Export a DB-Dump for a single Mandant"
@@ -34,5 +19,23 @@
     },
     "extd_search": {
         "desc": "Search EXTD/EXTI interactively with full text search"
+    },
+    "set_cli_config": {
+        "desc": "Configure the Inteco CLI"
+    },
+    "dump_table_to_csv": {
+        "desc": "Dumps a specific table from multiple SQL-Exports to a CSV"
+    },
+    "csv_merge": {
+        "desc": "Merge multiple CSV-Files (with same headers) into single file (with optional filter)"
+    },
+    "adb_bridge": {
+        "desc": "Activates an ADB-Bridge-Connection to an Android-Device"
+    },
+    "adb_intent": {
+        "desc": "Sends a configurable Intent to an Android-Device"
+    },
+    "graphql_schema_export": {
+        "desc": "Dump the Graph-QL-Schema from an Endpoint"
     }
 }

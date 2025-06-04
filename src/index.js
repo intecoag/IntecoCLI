@@ -16,6 +16,7 @@ import deleteDBMand from './modules/deleteDB.js';
 import commands from "./ressources/cmds.json" with {type: 'json'};
 import packageJson from "../package.json" with {type: 'json'}
 import extdSearch from './modules/extdSearch.js';
+import syncConfig from './modules/syncConfig.js';
 
 const helpText = cliMeowHelp({
     name: `inteco`,
@@ -66,6 +67,9 @@ switch (cli.input[0]) {
         break;
     case "extd_search":
         extdSearch();
+        break;
+    case "sync_config":
+        syncConfig();
         break;
     default:
         cli.showHelp()

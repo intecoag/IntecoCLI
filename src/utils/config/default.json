@@ -1,6 +1,7 @@
 {
     "configIndividualPath": "C:/Daten/eclipse_mars64_1/eclipse/configIndividual",
     "configIndividualPathWrite": "C:\\\\Daten\\\\eclipse_mars64_1\\\\eclipse\\\\configIndividual",
+    "configIndividualPathEclipse": "C:/Daten/wegas-ws-mars/ch.inteco.wegas.model/configIndividual",
     "dbURL": "127.0.0.1",
     "dbUser": "",
     "dbPassword": "",
