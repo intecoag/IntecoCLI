@@ -10,7 +10,7 @@ import writeCLIConfig from './modules/setCLIConfig.js';
 import t003Rewrite from './modules/t003Rewrite.js';
 import graphqlSchemaExport from './modules/graphqlSchemaExport.js';
 import csvMerge from './modules/csvMerger.js';
-import dumpDBMand from './modules/dumpDB.js';
+import {dumpDBMand, dumpDB } from './modules/dumpDB.js';
 import deleteDBMand from './modules/deleteDB.js';
 
 import commands from "./ressources/cmds.json" with {type: 'json'};
@@ -61,6 +61,9 @@ switch (cli.input[0]) {
         break;
     case "dump_db_mand":
         dumpDBMand(cli);
+        break;
+    case "dump_db":
+        dumpDB(cli);
         break;
     case "delete_db_mand":
         deleteDBMand();

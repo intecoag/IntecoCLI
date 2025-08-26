@@ -1,4 +1,7 @@
 {
+    "dump_db": {
+        "desc": "Dumps a DB-Export from local MYSQL-Instance (optionally with table selection or data only)."
+    },
     "import_db": {
         "desc": "Imports a DB-Export (in Archive) to the local MYSQL-Instance"
     },
