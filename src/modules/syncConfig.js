@@ -86,7 +86,6 @@ export default async function syncConfig() {
 
 
     if (success) {
-        console.log();
         let sourcePath, destPath;
 
         switch (responses.direction) {
@@ -117,54 +116,80 @@ export default async function syncConfig() {
             }
         }
 
-        const dryRun = responses.dryRun;
-        let summary = {};
-
-        switch (responses.type) {
-            case 'UPDATE':
-                console.log(chalk.yellow(`Updating files from ${sourcePath} → ${destPath}`));
-                summary = { added: 0, updated: 0 };
-                FS.copyUpdatedFiles(sourcePath, destPath, dryRun, summary);
-                console.log();
-                console.log(chalk.green(`Summary: ${summary.updated} files added or updated.`));
-                break;
-
-            case 'OVERWRITE':
-                console.log(chalk.red(`Overwriting files from ${sourcePath} → ${destPath}`));
-
-                let deletedCount = 0;
-                if (existsSync(destPath)) {
-                    deletedCount = countAndDeleteDir(destPath, dryRun);
-                    if (!dryRun) {
-                        console.log(chalk.gray(`Deleted existing folder: ${destPath}`));
-                    }
+        process(responses, responses.dryRun, sourcePath, destPath);
+        if (responses.dryRun) {
+            console.log()
+            const confirmationResults = await prompts([
+                {
+                    type: 'confirm',
+                    name: 'confirmation',
+                    message: 'Would you like to execute the dry-run?',
+                    initial: true
                 }
-
-                if (!dryRun) {
-                    mkdirSync(destPath, { recursive: true });
-                } else {
-                    console.log(chalk.gray(`[DryRun] Would create directory: ${destPath}`));
+            ], {
+                onCancel: () => {
+                    console.log();
+                    console.log(chalk.red("Cancelled Operation!"));
+                    console.log();
+                    success = false;
                 }
+            })
 
-                summary = { copied: 0 };
-                FS.copyAllFiles(sourcePath, destPath, dryRun, summary);
-
-                console.log();
-                console.log(chalk.green(`Summary: Deleted ${deletedCount} items, Copied ${summary.copied} files.`));
-                break;
-        }
-
-        console.log();
-        if (dryRun) {
-            console.log(chalk.yellow("Dry run complete — no changes were made."));
-        } else {
-            console.log(chalk.green("Config sync completed successfully."));
+            if(confirmationResults.confirmation){
+                process(responses, false, sourcePath, destPath);
+            }
         }
         console.log();
     }
 
 
 
+}
+
+function process(responses, dryRun, sourcePath, destPath) {
+    console.log();
+    let summary = {};
+
+    switch (responses.type) {
+        case 'UPDATE':
+            console.log(chalk.yellow(`Updating files from ${sourcePath} → ${destPath}`));
+            summary = { added: 0, updated: 0 };
+            FS.copyUpdatedFiles(sourcePath, destPath, dryRun, summary);
+            console.log();
+            console.log(chalk.green(`Summary: ${summary.updated} files added or updated.`));
+            break;
+
+        case 'OVERWRITE':
+            console.log(chalk.red(`Overwriting files from ${sourcePath} → ${destPath}`));
+
+            let deletedCount = 0;
+            if (existsSync(destPath)) {
+                deletedCount = countAndDeleteDir(destPath, dryRun);
+                if (!dryRun) {
+                    console.log(chalk.gray(`Deleted existing folder: ${destPath}`));
+                }
+            }
+
+            if (!dryRun) {
+                mkdirSync(destPath, { recursive: true });
+            } else {
+                console.log(chalk.gray(`[DryRun] Would create directory: ${destPath}`));
+            }
+
+            summary = { copied: 0 };
+            FS.copyAllFiles(sourcePath, destPath, dryRun, summary);
+
+            console.log();
+            console.log(chalk.green(`Summary: Deleted ${deletedCount} items, Copied ${summary.copied} files.`));
+            break;
+    }
+
+    console.log();
+    if (dryRun) {
+        console.log(chalk.yellow("Dry run complete — no changes were made."));
+    } else {
+        console.log(chalk.green("Config sync completed successfully."));
+    }
 }
 
 function countAndDeleteDir(dirPath, dryRun = false) {
