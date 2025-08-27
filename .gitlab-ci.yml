@@ -1,0 +1,33 @@
+stages:
+  - package
+  - release
+
+variables:
+  ZIP_FILE: "${CI_PROJECT_NAME}-${CI_COMMIT_TAG}.zip"
+
+# Step 1: Create a zip of the whole repo
+package_repo:
+  stage: package
+  script:
+    - zip -r "$ZIP_FILE" . -x "*.git*"  # exclude .git folder
+  artifacts:
+    paths:
+      - "$ZIP_FILE"
+
+# Step 2: Create GitLab release and upload the zip
+release:
+  stage: release
+  dependencies:
+    - package_repo
+  script:
+    - echo "Creating release and uploading asset"
+  release:
+    name: "Release $CI_COMMIT_TAG"
+    tag_name: "$CI_COMMIT_TAG"
+    description: "Automated release for tag $CI_COMMIT_TAG"
+    assets:
+      links:
+        - name: "$ZIP_FILE"
+          url: "${CI_PROJECT_URL}/-/jobs/${CI_JOB_ID}/artifacts/file/${ZIP_FILE}"
+  only:
+    - tags
