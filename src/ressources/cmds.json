@@ -14,6 +14,9 @@
     "t003_rewrite": {
         "desc": "Rewrites t003 in DB"
     },
+    "bundle_product":{
+        "desc": "Bundles the jWEGAS-Product after an Eclipse-Export"
+    },
     "dump_db_mand": {
         "desc": "Export a DB-Dump for a single Mandant"
     },

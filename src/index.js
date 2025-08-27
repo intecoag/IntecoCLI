@@ -17,6 +17,7 @@ import commands from "./ressources/cmds.json" with {type: 'json'};
 import packageJson from "../package.json" with {type: 'json'}
 import extdSearch from './modules/extdSearch.js';
 import syncConfig from './modules/syncConfig.js';
+import bundleProduct from './modules/bundleProduct.js';
 
 const helpText = cliMeowHelp({
     name: `inteco`,
@@ -73,6 +74,9 @@ switch (cli.input[0]) {
         break;
     case "sync_config":
         syncConfig();
+        break;
+    case "bundle_product":
+        bundleProduct(cli);
         break;
     default:
         cli.showHelp()
