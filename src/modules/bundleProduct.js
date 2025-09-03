@@ -1,11 +1,11 @@
-import { readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "fs";
+import { existsSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from "fs";
 import Seven from 'node-7z'
 import sevenBin from '7zip-bin'
 import { Config } from "../utils/config/config.js";
 import prompts from "prompts";
 import chalk from "chalk";
 import { fileURLToPath } from 'url';
-import { dirname} from 'path';
+import { dirname } from 'path';
 import path from "path";
 import ora from "ora";
 import { cp } from "fs/promises";
@@ -74,8 +74,17 @@ export default async function bundleProduct(cli) {
         console.log()
 
         const spinnerRemoveOld = ora("Removing old configs")
-        rmSync(path.resolve(".", results.folder, "config"), {recursive: true})
-        rmSync(path.resolve(".", results.folder, "configIndividual"), {recursive: true})
+        const configPath = path.resolve(".", results.folder, "config");
+        const configIndividualPath = path.resolve(".", results.folder, "configIndividual");
+
+        if (existsSync(configPath)) {
+            rmSync(configPath, { recursive: true, force: true });
+        }
+
+        if (existsSync(configIndividualPath)) {
+            rmSync(configIndividualPath, { recursive: true, force: true });
+        }
+
         spinnerRemoveOld.succeed("Removed old configs")
 
         const spinnerConfig = ora('Copying config').start();
@@ -117,13 +126,13 @@ export default async function bundleProduct(cli) {
 
         spinnerIniRewrite.succeed("wegas.ini rewritten: -Xmx" + results.ram + "g")
 
-        const spinnerRename = ora("Renaming folder: "+results.folder +" -> "+results.folderName).start();
+        const spinnerRename = ora("Renaming folder: " + results.folder + " -> " + results.folderName).start();
         renameSync(path.resolve(".", results.folder), path.resolve(".", results.folderName))
-        spinnerRename.succeed("Folder renamed: "+results.folder +" -> "+results.folderName)
+        spinnerRename.succeed("Folder renamed: " + results.folder + " -> " + results.folderName)
 
-        const spinnerZIP = ora('Zipping: ' + results.folderName+".zip").start();
+        const spinnerZIP = ora('Zipping: ' + results.folderName + ".zip").start();
 
-        const zipPath = path.resolve(".", results.folderName+".zip")
+        const zipPath = path.resolve(".", results.folderName + ".zip")
         const addPath = path.resolve(".", results.folderName)
         const add = Seven.add(zipPath, addPath, {
             $bin: sevenBin.path7za
@@ -131,11 +140,11 @@ export default async function bundleProduct(cli) {
 
         await getPromiseFromEvent(add, "end")
 
-        spinnerZIP.succeed('Zipped: ' + results.folderName+".zip")
+        spinnerZIP.succeed('Zipped: ' + results.folderName + ".zip")
 
-                const spinnerRenameRevert = ora("Renaming folder: "+results.folderName +" -> "+results.folder).start();
+        const spinnerRenameRevert = ora("Renaming folder: " + results.folderName + " -> " + results.folder).start();
         renameSync(path.resolve(".", results.folderName), path.resolve(".", results.folder))
-        spinnerRenameRevert.succeed("Folder renamed: "+results.folderName +" -> "+results.folder)
+        spinnerRenameRevert.succeed("Folder renamed: " + results.folderName + " -> " + results.folder)
 
 
         console.log()
@@ -144,9 +153,9 @@ export default async function bundleProduct(cli) {
 
 function getPromiseFromEvent(item, event) {
     return new Promise((resolve) => {
-      const listener = (data) => {
-        resolve(data);
-      }
-      item.on(event, listener);
+        const listener = (data) => {
+            resolve(data);
+        }
+        item.on(event, listener);
     })
-  }
+}

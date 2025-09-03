@@ -1,6 +1,6 @@
 {
   "name": "inteco_cli",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "CLI-Tools for Inteco",
   "main": "src/index.js",
   "type": "module",
