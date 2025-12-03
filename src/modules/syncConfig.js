@@ -170,9 +170,6 @@ export default async function syncConfig() {
     }
 }
 
-function process(responses, dryRun, sourcePath, destPath) {
-    return processMultiple(responses, dryRun, [sourcePath], [destPath])
-}
 
 function processMultiple(responses, dryRun, sourcePaths, destPaths) {
     console.log();
@@ -183,7 +180,7 @@ function processMultiple(responses, dryRun, sourcePaths, destPaths) {
             console.log(chalk.yellow(`Updating files from ${sourcePaths.join(', ')} → ${destPaths.join(', ')}`));
             summary = { added: 0, updated: 0 };
             for(let i = 0; i < sourcePaths.length && i < destPaths.length; i++) {
-                FS.copyUpdatedFiles(sourcePaths[i], destPaths[i], dryRun, summary);
+                FS.copyUpdatedFiles(sourcePaths[i], destPaths[i], dryRun, summary, ["wegas.properties", "path.yaml"]);
             }
             console.log();
             console.log(chalk.green(`Summary: ${summary.updated} files added or updated.`));
@@ -208,7 +205,7 @@ function processMultiple(responses, dryRun, sourcePaths, destPaths) {
                     console.log(chalk.gray(`[DryRun] Would create directory: ${destPaths[i]}`));
                 }
 
-                FS.copyAllFiles(sourcePaths[i], destPaths[i], dryRun, summary);
+                FS.copyAllFiles(sourcePaths[i], destPaths[i], dryRun, summary, ["wegas.properties", "path.yaml"]);
             }
 
             console.log();

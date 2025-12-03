@@ -4,7 +4,7 @@ import path from "path";
 
 
 export class FS {
-    static copyUpdatedFiles(sourceDir, destDir, dryRun = false, stats = { added: 0, updated: 0 }) {
+    static copyUpdatedFiles(sourceDir, destDir, dryRun = false, stats = { added: 0, updated: 0 }, filenameBlacklist = []) {
         if (!existsSync(destDir)) {
             if (dryRun) {
                 console.log(chalk.gray(`[DryRun] Would create directory: ${destDir}`));
@@ -16,11 +16,15 @@ export class FS {
         const entries = readdirSync(sourceDir, { withFileTypes: true });
 
         for (const entry of entries) {
+            if(filenameBlacklist.includes(entry.name)) {
+                continue;
+            }
+
             const sourcePath = path.join(sourceDir, entry.name);
             const destPath = path.join(destDir, entry.name);
 
             if (entry.isDirectory()) {
-                FS.copyUpdatedFiles(sourcePath, destPath, dryRun, stats);
+                FS.copyUpdatedFiles(sourcePath, destPath, dryRun, stats, filenameBlacklist);
             } else {
                 let shouldCopy = false;
 
@@ -48,7 +52,7 @@ export class FS {
     }
 
 
-    static copyAllFiles(sourceDir, destDir, dryRun = false, stats = { copied: 0 }) {
+    static copyAllFiles(sourceDir, destDir, dryRun = false, stats = { copied: 0 }, filenameBlacklist = []) {
         if (!existsSync(destDir)) {
             if (dryRun) {
                 console.log(chalk.gray(`[DryRun] Would create directory: ${destDir}`));
@@ -60,11 +64,15 @@ export class FS {
         const entries = readdirSync(sourceDir, { withFileTypes: true });
 
         for (const entry of entries) {
+            if(filenameBlacklist.includes(entry.name)) {
+                continue;
+            }
+
             const sourcePath = path.join(sourceDir, entry.name);
             const destPath = path.join(destDir, entry.name);
 
             if (entry.isDirectory()) {
-                FS.copyAllFiles(sourcePath, destPath, dryRun, stats);
+                FS.copyAllFiles(sourcePath, destPath, dryRun, stats, filenameBlacklist);
             } else {
                 if (dryRun) {
                     console.log(chalk.magenta(`[DryRun] Would copy file: ${destPath}`));
