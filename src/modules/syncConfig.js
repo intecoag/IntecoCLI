@@ -26,6 +26,10 @@ export default async function syncConfig() {
                 { title: 'Export ConfigIndividual (Work → Repository)', value: 'export' },
                 { title: 'Import Config (Repository → Work)', value: 'import_config' },
                 { title: 'Export Config (Work → Repository)', value: 'export_config' },
+                { title: 'Import Everything (Repository → Work)', value: 'import_all' },
+                { title: 'Export Everything (Work → Repository)', value: 'export_all' },
+                { title: 'Import All ConfigIndividual (Repository → Work)', value: 'import_all_individuals' },
+                { title: 'Export All ConfigIndividual (Work → Repository)', value: 'export_all_individuals' }
             ]
         },
         {
@@ -86,23 +90,45 @@ export default async function syncConfig() {
 
 
     if (success) {
-        let sourcePath, destPath;
+        let sourcePaths, destPaths;
 
         switch (responses.direction) {
             case 'import':
-                sourcePath = path.join(config.configIndividualPathEclipse, responses.configNameSource);
-                destPath = path.join(config.configIndividualPath, responses.configNameTarget);
+                sourcePaths = [path.join(config.configIndividualPathEclipse, responses.configNameSource)];
+                destPaths = [path.join(config.configIndividualPath, responses.configNameTarget)];
                 break;
+
             case 'export':
-                sourcePath = path.join(config.configIndividualPath, responses.configNameSource);
-                destPath = path.join(config.configIndividualPathEclipse, responses.configNameTarget);
+                sourcePaths = [path.join(config.configIndividualPath, responses.configNameSource)];
+                destPaths = [path.join(config.configIndividualPathEclipse, responses.configNameTarget)];
                 break;
+
+            case 'import_all':
+                sourcePaths = [path.resolve(config.configIndividualPathEclipse, '..', "config"), config.configIndividualPathEclipse];
+                destPaths = [path.resolve(config.configIndividualPath, '..', "config"), config.configIndividualPath];
+                break;
+
+            case 'export_all':
+                sourcePaths = [path.resolve(config.configIndividualPath, '..', "config"), config.configIndividualPath];
+                destPaths = [path.resolve(config.configIndividualPathEclipse, '..', "config"), config.configIndividualPathEclipse];
+                break;
+
+            case 'import_all_individuals':
+                sourcePaths = [path.resolve(config.configIndividualPathEclipse)];
+                destPaths = [path.resolve(config.configIndividualPath)];
+                break;
+
+            case 'export_all_individuals':
+                destPaths = [path.resolve(config.configIndividualPathEclipse)];
+                sourcePaths = [path.resolve(config.configIndividualPath)];
+                break;
+
             case 'import_config': {
                 const sourceParent = path.resolve(config.configIndividualPathEclipse, '..');
                 const destParent = path.resolve(config.configIndividualPath, '..');
 
-                sourcePath = findConfigDirNamedConfigIn(sourceParent);
-                destPath = findConfigDirNamedConfigIn(destParent);
+                sourcePaths = [findConfigDirNamedConfigIn(sourceParent)];
+                destPaths = [findConfigDirNamedConfigIn(destParent)];
                 break;
             }
 
@@ -110,13 +136,14 @@ export default async function syncConfig() {
                 const sourceParent = path.resolve(config.configIndividualPath, '..');
                 const destParent = path.resolve(config.configIndividualPathEclipse, '..');
 
-                sourcePath = findConfigDirNamedConfigIn(sourceParent);
-                destPath = findConfigDirNamedConfigIn(destParent);
+                sourcePaths = [findConfigDirNamedConfigIn(sourceParent)];
+                destPaths = [findConfigDirNamedConfigIn(destParent)];
                 break;
             }
         }
 
-        process(responses, responses.dryRun, sourcePath, destPath);
+        processMultiple(responses, responses.dryRun, sourcePaths, destPaths);
+
         if (responses.dryRun) {
             console.log()
             const confirmationResults = await prompts([
@@ -136,48 +163,50 @@ export default async function syncConfig() {
             })
 
             if(confirmationResults.confirmation){
-                process(responses, false, sourcePath, destPath);
+                processMultiple(responses, false, sourcePaths, destPaths);
             }
         }
         console.log();
     }
-
-
-
 }
 
-function process(responses, dryRun, sourcePath, destPath) {
+
+function processMultiple(responses, dryRun, sourcePaths, destPaths) {
     console.log();
     let summary = {};
 
     switch (responses.type) {
         case 'UPDATE':
-            console.log(chalk.yellow(`Updating files from ${sourcePath} → ${destPath}`));
+            console.log(chalk.yellow(`Updating files from ${sourcePaths.join(', ')} → ${destPaths.join(', ')}`));
             summary = { added: 0, updated: 0 };
-            FS.copyUpdatedFiles(sourcePath, destPath, dryRun, summary);
+            for(let i = 0; i < sourcePaths.length && i < destPaths.length; i++) {
+                FS.copyUpdatedFiles(sourcePaths[i], destPaths[i], dryRun, summary, ["wegas.properties", "path.yaml"]);
+            }
             console.log();
             console.log(chalk.green(`Summary: ${summary.updated} files added or updated.`));
             break;
 
         case 'OVERWRITE':
-            console.log(chalk.red(`Overwriting files from ${sourcePath} → ${destPath}`));
-
-            let deletedCount = 0;
-            if (existsSync(destPath)) {
-                deletedCount = countAndDeleteDir(destPath, dryRun);
-                if (!dryRun) {
-                    console.log(chalk.gray(`Deleted existing folder: ${destPath}`));
-                }
-            }
-
-            if (!dryRun) {
-                mkdirSync(destPath, { recursive: true });
-            } else {
-                console.log(chalk.gray(`[DryRun] Would create directory: ${destPath}`));
-            }
+            console.log(chalk.red(`Overwriting files from ${sourcePaths.join(', ')} → ${destPaths.join(', ')}`));
 
             summary = { copied: 0 };
-            FS.copyAllFiles(sourcePath, destPath, dryRun, summary);
+            let deletedCount = 0;
+            for(let i = 0; i < sourcePaths.length && i < destPaths.length; i++) {
+                if (existsSync(destPaths[i])) {
+                    deletedCount += countAndDeleteDir(destPaths[i], dryRun);
+                    if (!dryRun) {
+                        console.log(chalk.gray(`Deleted existing folder: ${destPaths[i]}`));
+                    }
+                }
+
+                if (!dryRun) {
+                    mkdirSync(destPaths[i], { recursive: true });
+                } else {
+                    console.log(chalk.gray(`[DryRun] Would create directory: ${destPaths[i]}`));
+                }
+
+                FS.copyAllFiles(sourcePaths[i], destPaths[i], dryRun, summary, ["wegas.properties", "path.yaml"]);
+            }
 
             console.log();
             console.log(chalk.green(`Summary: Deleted ${deletedCount} items, Copied ${summary.copied} files.`));
