@@ -1,5 +1,5 @@
 {
-  "name": "inteco_cli",
+  "name": "@intecoag/inteco-cli",
   "version": "0.5.1",
   "description": "CLI-Tools for Inteco",
   "main": "src/index.js",
@@ -31,5 +31,8 @@
   },
   "bin": {
     "inteco": "src/index.js"
+  },
+  "devDependencies": {
+    "semantic-release": "^25.0.2"
   }
 }
