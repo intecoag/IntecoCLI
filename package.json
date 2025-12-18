@@ -9,6 +9,7 @@
   },
   "author": "ah1",
   "license": "ISC",
+  "repository": "https://github.com/intecoag/IntecoCLI",
   "dependencies": {
     "7zip-bin": "^5.2.0",
     "adb-ts": "^2.1.2",
