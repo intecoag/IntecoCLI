@@ -26,7 +26,8 @@ updateNotifier({
         name: packageJson.name,
         version: packageJson.version
     }, 
-    updateCheckInterval: 0}).notify();
+    updateCheckInterval: 1000 * 60 * 60 * 24 // 24h
+    }).notify();
 
 
 const helpText = cliMeowHelp({
