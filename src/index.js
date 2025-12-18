@@ -19,6 +19,16 @@ import extdSearch from './modules/extdSearch.js';
 import syncConfig from './modules/syncConfig.js';
 import bundleProduct from './modules/bundleProduct.js';
 
+import updateNotifier from 'update-notifier';
+
+updateNotifier({
+    pkg: {
+        name: packageJson.name,
+        version: packageJson.version
+    }, 
+    updateCheckInterval: 0}).notify();
+
+
 const helpText = cliMeowHelp({
     name: `inteco`,
     desc: "Version: "+packageJson.version,
