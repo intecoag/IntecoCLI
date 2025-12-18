@@ -12,6 +12,7 @@ import graphqlSchemaExport from './modules/graphqlSchemaExport.js';
 import csvMerge from './modules/csvMerger.js';
 import {dumpDBMand, dumpDB } from './modules/dumpDB.js';
 import deleteDBMand from './modules/deleteDB.js';
+import showChangelog from './modules/changelog.js';
 
 import commands from "./ressources/cmds.json" with {type: 'json'};
 import packageJson from "../package.json" with {type: 'json'}
@@ -88,6 +89,9 @@ switch (cli.input[0]) {
         break;
     case "bundle_product":
         bundleProduct(cli);
+        break;
+    case "changelog":
+        showChangelog();
         break;
     default:
         cli.showHelp()
