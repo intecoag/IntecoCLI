@@ -20,10 +20,10 @@ export default async function mutateConfig() {
             name: 'mergeType',
             message: 'Select Merge Type:',
             choices: [
-                { title: 'Only Create missing Keys', value: 'only_create' } /*,
+                { title: 'Only Create missing Keys', value: 'only_create' },
                 { title: 'Create, Update and Overwrite Keys', value: 'create_update_overwrite' },
                 { title: 'Remove missing Keys', value: 'remove_missing' },
-                { title: 'Sync Config with ConfigIndividual', value: 'sync_with_individual' }*/
+                { title: 'Sync Config with ConfigIndividual', value: 'sync_with_individual' }
             ]
         },
         {
@@ -57,6 +57,12 @@ export default async function mutateConfig() {
             case 'only_create':
                 await processAddMissing(files, config.configIndividualPathEclipse, responses.mergeClients, responses.dryRun);
                 break;
+            case 'remove_missing':
+                await processRemoveMissing(files, config.configIndividualPathEclipse, responses.mergeClients, responses.dryRun);
+                break;
+            case 'create_update_overwrite':
+                await processMergeOverwrite(files, config.configIndividualPathEclipse, responses.mergeClients, responses.dryRun);
+                break;
         }
 
         if (responses.dryRun) {
@@ -82,6 +88,12 @@ export default async function mutateConfig() {
                     case 'only_create':
                         await processAddMissing(files, config.configIndividualPathEclipse, responses.mergeClients, false);
                         break;
+                    case 'remove_missing':
+                        await processRemoveMissing(files, config.configIndividualPathEclipse, responses.mergeClients, false);
+                        break;
+                    case 'create_update_overwrite':
+                        await processMergeOverwrite(files, config.configIndividualPathEclipse, responses.mergeClients, false);
+                        break;
                 }
             }
         }
@@ -89,8 +101,16 @@ export default async function mutateConfig() {
     }
 }
 
+async function processMergeOverwrite(filesToUpdate, configIndividualPathEclipse, mergeClients, dryRun) {
+    await processEachFile(filesToUpdate, configIndividualPathEclipse, mergeClients, dryRun, mergeOverwriteNodes);
+}
+
+async function processRemoveMissing(filesToUpdate, configIndividualPathEclipse, mergeClients, dryRun) {
+    await processEachFile(filesToUpdate, configIndividualPathEclipse, mergeClients, dryRun, removeMissingNodes);
+}
+
 async function processAddMissing(filesToUpdate, configIndividualPathEclipse, mergeClients, dryRun) {
-    processEachFile(filesToUpdate, configIndividualPathEclipse, mergeClients, dryRun, addMissingInFile);
+    await processEachFile(filesToUpdate, configIndividualPathEclipse, mergeClients, dryRun, addMissingNodes);
 }
 
 async function processEachFile(filesToUpdate, configIndividualPathEclipse, mergeClients, dryRun, processAction) {
@@ -106,7 +126,7 @@ async function processEachFile(filesToUpdate, configIndividualPathEclipse, merge
             const relatedConfigsForFile = await getRelatedConfigs(individualConfigPath, mergeClients);
             for(const config of relatedConfigsForFile) {
 
-                const hasUpdates = processAction(path.join(globalConfig, "yaml", file), config, dryRun);
+                const hasUpdates = processInFile(path.join(globalConfig, "yaml", file), config, dryRun, processAction);
 
                 if(hasUpdates) updatedFiles++;
             }
@@ -122,18 +142,19 @@ async function processEachFile(filesToUpdate, configIndividualPathEclipse, merge
     }
 }
 
-function addMissingInFile(compareFrom, compareTo, dryRun) {
+function processInFile(compareFrom, compareTo, dryRun, processAction) {
     try {
         if(!FS.existsSync(compareFrom) || !FS.existsSync(compareTo)) return;
         const fromDocument = YAML.parseDocument(FS.readFileSync(compareFrom, "utf-8"));
         const toDocument = YAML.parseDocument(FS.readFileSync(compareTo, "utf-8"));
         
-        const hasChanges = addMissingNodes(fromDocument.contents, toDocument.contents);
+        const hasChanges = processAction(fromDocument.contents, toDocument.contents);
         const resultText = toDocument.toString();
         
 
         if(hasChanges) {
             if(dryRun) {
+                console.debug(chalk.gray(`[Debug] From file ${compareFrom}`));
                 console.log(chalk.green(`[DryRun] Would Update file: ${compareTo}`));
             }
             else {
@@ -155,16 +176,16 @@ function addMissingInFile(compareFrom, compareTo, dryRun) {
 }
 
 async function getRelatedConfigs(file, withClients) {
-    if(!withClients) return [file];
-
     const dir = path.dirname(file);
     const ext = path.extname(file);
     const name = path.basename(file, ext);
 
     let patterns = [
         path.join(dir, `${name}${ext}`),        // name.yaml
-        path.join(dir, `*_${name}${ext}`)       // *_name.yaml (für mandanten)
     ];
+
+    if(withClients)
+        patterns.push(path.join(dir, `*_${name}${ext}`)); // *_name.yaml (für mandanten)
 
     patterns = patterns.map(p => p.replaceAll(path.sep, '/'));
 
@@ -216,6 +237,92 @@ function addMissingNodes(fromNode, toNode) {
         return hasChanges;
     }
 }
+
+function removeMissingNodes(fromNode, toNode) {
+    let hasChanges = false;
+
+    if (!fromNode || !toNode) return false;
+
+    if (fromNode instanceof YAMLMap && toNode instanceof YAMLMap) {
+        for (let i = toNode.items.length - 1; i >= 0; i--) {
+            const toPair = toNode.items[i];
+            const keyNode = toPair.key;
+
+            if (!fromNode.has(keyNode)) {
+                toNode.items.splice(i, 1);
+                hasChanges = true;
+                continue;
+            }
+
+            const fromVal = fromNode.get(keyNode, true);
+            hasChanges |= removeMissingNodes(fromVal, toPair.value);
+        }
+        return hasChanges;
+    }
+
+    if (fromNode instanceof YAMLSeq && toNode instanceof YAMLSeq) {
+        for (let i = toNode.items.length - 1; i >= 0; i--) {
+            const toItem = toNode.items[i];
+            const toJson = nodeToJs(toItem);
+
+            let exists = false;
+            for (const fromItem of fromNode.items) {
+                if (deepEqual(toJson, nodeToJs(fromItem))) {
+                    exists = true;
+                    break;
+                }
+            }
+
+            if (!exists) {
+                toNode.items.splice(i, 1);
+                hasChanges = true;
+            }
+        }
+        return hasChanges;
+    }
+
+    return false;
+}
+
+function mergeOverwriteNodes(fromNode, toNode) {
+    let hasChanges = false;
+
+    if (!fromNode || !toNode) return false;
+
+    if (fromNode instanceof YAMLMap && toNode instanceof YAMLMap) {
+        for (const fromPair of fromNode.items) {
+            const keyNode = fromPair.key;
+            const fromVal = fromPair.value;
+
+            if (!toNode.has(keyNode)) {
+                toNode.items.push(fromPair);
+                hasChanges = true;
+                continue;
+            }
+
+            const toVal = toNode.get(keyNode, true);
+
+            if (
+                fromVal?.constructor === toVal?.constructor &&
+                (fromVal instanceof YAMLMap || fromVal instanceof YAMLSeq)
+            ) {
+                hasChanges |= mergeOverwriteNodes(fromVal, toVal);
+            } else {
+                toNode.set(keyNode, fromVal);
+                hasChanges = true;
+            }
+        }
+        return hasChanges;
+    }
+
+    if (fromNode instanceof YAMLSeq && toNode instanceof YAMLSeq) {
+        toNode.items = [...fromNode.items];
+        return true;
+    }
+
+    return false;
+}
+
 
 function nodeToJs(node) {
     return node && typeof node.toJSON === "function"
