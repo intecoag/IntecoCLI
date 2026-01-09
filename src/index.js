@@ -12,6 +12,7 @@ import graphqlSchemaExport from './modules/graphqlSchemaExport.js';
 import csvMerge from './modules/csvMerger.js';
 import {dumpDBMand, dumpDB } from './modules/dumpDB.js';
 import deleteDBMand from './modules/deleteDB.js';
+import showChangelog from './modules/changelog.js';
 
 import commands from "./ressources/cmds.json" with {type: 'json'};
 import packageJson from "../package.json" with {type: 'json'}
@@ -19,6 +20,17 @@ import extdSearch from './modules/extdSearch.js';
 import syncConfig from './modules/syncConfig.js';
 import configMutation from './modules/configMutation.js';
 import bundleProduct from './modules/bundleProduct.js';
+
+import updateNotifier from 'update-notifier';
+
+updateNotifier({
+    pkg: {
+        name: packageJson.name,
+        version: packageJson.version
+    }, 
+    updateCheckInterval: 1000 * 60 * 60 * 24 // 24h
+    }).notify();
+
 
 const helpText = cliMeowHelp({
     name: `inteco`,
@@ -81,6 +93,9 @@ switch (cli.input[0]) {
         break;
     case "bundle_product":
         bundleProduct(cli);
+        break;
+    case "changelog":
+        showChangelog();
         break;
     default:
         cli.showHelp()

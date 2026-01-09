@@ -46,5 +46,8 @@
     },
     "graphql_schema_export": {
         "desc": "Dump the Graph-QL-Schema from an Endpoint"
+    },
+    "changelog": {
+        "desc": "Shows the changelog history"
     }
 }
