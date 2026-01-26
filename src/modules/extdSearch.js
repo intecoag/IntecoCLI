@@ -152,10 +152,10 @@ const configs = [
     {
         name: "Overview",
         cmd: "ow",
-        searchKeys: ['name', 'bez_d', 'bez_f', 'bez_i'],
+        searchKeys: ['mnr', 'name', 'bez_d', 'bez_f', 'bez_i'],
         threshold: 0.7,
-        tableHeader: ['Table', 'Name', 'Bezeichnung Deutsch', 'Bezeichnung Französisch', 'Bezeichnung Italieniesch'],
-        tableFormatter: p => [p.table, p.name, p.bez_d, p.bez_f, p.bez_i]
+        tableHeader: ['MNR', 'Table', 'Name', 'Bezeichnung Deutsch', 'Bezeichnung Französisch', 'Bezeichnung Italieniesch'],
+        tableFormatter: p => [p.mnr, p.table, p.name, p.bez_d, p.bez_f, p.bez_i]
     },
     {
         name: "Field-Information",
@@ -167,9 +167,9 @@ const configs = [
             'b_dtext_7', 'b_dtext_8', 'b_dtext_9'
         ],
         threshold: 0.7,
-        tableHeader: ['Table', 'Name', 'Feldtyp', 'Flag', 'Testflag', 'Wert 1', 'Wert 2', 'Wert 3', 'Wert 4', 'Wert 5', 'Wert 6', 'Wert 7', 'Wert 8', 'Wert 9'],
+        tableHeader: ['MNR', 'Table', 'Name', 'Feldtyp', 'Flag', 'Testflag', 'Wert 1', 'Wert 2', 'Wert 3', 'Wert 4', 'Wert 5', 'Wert 6', 'Wert 7', 'Wert 8', 'Wert 9'],
         tableFormatter: p => [
-            p.table, p.name,
+            p.mnr, p.table, p.name,
             formatFieldType(p.special),
             formatFlag(p.flag),
             formatTestFlag(p.testflag),
@@ -180,15 +180,15 @@ const configs = [
         name: "Disp-Fields",
         cmd: "df",
         searchKeys: [
-            'name', 'bez_d', 'testfeld',
+            'mnr', 'name', 'bez_d', 'testfeld',
             'disp_feld_1', 'disp_feld_2', 'disp_feld_3',
             'disp_feld_4', 'disp_feld_5', 'disp_feld_6',
             'disp_feld_7', 'disp_feld_8', 'disp_feld_9'
         ],
         threshold: 0.7,
-        tableHeader: ['Table', 'Name', 'Test-Feld', 'Dispmask', 'Dispfeld 1', 'Dispfeld 2', 'Dispfeld 3', 'Dispfeld 4', 'Dispfeld 5', 'Dispfeld 6', 'Dispfeld 7', 'Dispfeld 8', 'Dispfeld 9'],
+        tableHeader: ['MNR', 'Table', 'Name', 'Test-Feld', 'Dispmask', 'Dispfeld 1', 'Dispfeld 2', 'Dispfeld 3', 'Dispfeld 4', 'Dispfeld 5', 'Dispfeld 6', 'Dispfeld 7', 'Dispfeld 8', 'Dispfeld 9'],
         tableFormatter: p => [
-            p.table, p.name, p.testfeld, p.dispmask,
+            p.mnr, p.table, p.name, p.testfeld, p.dispmask,
             p.disp_feld_1, p.disp_feld_2, p.disp_feld_3,
             p.disp_feld_4, p.disp_feld_5, p.disp_feld_6,
             p.disp_feld_7, p.disp_feld_8, p.disp_feld_9
