@@ -14,3 +14,7 @@ updates:
         patterns:
           - "*"
     open-pull-requests-limit: 10
+    commit-message:
+      prefix: fix
+      prefix-development: chore
+      include: scope
