@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   publish:
-    runs-on: selfhosted
+    runs-on: self-hosted
     steps:
       - name: Checkout
         uses: actions/checkout@v6
