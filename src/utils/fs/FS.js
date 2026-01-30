@@ -4,7 +4,7 @@ import path from "path";
 
 
 export class FS {
-    static copyUpdatedFiles(sourceDir, destDir, dryRun = false, stats = { added: 0, updated: 0 }, filenameBlacklist = []) {
+    static copyUpdatedFiles(sourceDir, destDir, dryRun = false, stats = { added: 0, updated: 0 }, filenameBlacklist = [], onlyCopyNonExistant = false) {
         if (!existsSync(destDir)) {
             if (dryRun) {
                 console.log(chalk.gray(`[DryRun] Would create directory: ${destDir}`));
@@ -30,7 +30,7 @@ export class FS {
 
                 if (!existsSync(destPath)) {
                     shouldCopy = true;
-                } else {
+                } else if(!onlyCopyNonExistant) {
                     const sourceStat = statSync(sourcePath);
                     const destStat = statSync(destPath);
 

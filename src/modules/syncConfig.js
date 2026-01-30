@@ -29,7 +29,8 @@ export default async function syncConfig() {
                 { title: 'Import Everything (Repository → Work)', value: 'import_all' },
                 { title: 'Export Everything (Work → Repository)', value: 'export_all' },
                 { title: 'Import All ConfigIndividual (Repository → Work)', value: 'import_all_individuals' },
-                { title: 'Export All ConfigIndividual (Work → Repository)', value: 'export_all_individuals' }
+                { title: 'Export All ConfigIndividual (Work → Repository)', value: 'export_all_individuals' },
+                { title: 'Sync from Config to ConfigIndividual (Repository → Repository)', value: 'sync_to_configIndividual' },
             ]
         },
         {
@@ -62,6 +63,21 @@ export default async function syncConfig() {
             }
         },
         {
+            type: (prev, values) => values.direction == 'sync_to_configIndividual' ? 'autocomplete' : null,
+            name: 'configIndividualSelection',
+            message: 'ConfigIndividual (Destination)?',
+            choices: (prev, values) => {
+                const entries = readdirSync(config.configIndividualPath, { withFileTypes: true });
+
+                return entries
+                    .filter(e => e.isDirectory())
+                    .map(e => ({
+                        title: e.name,
+                        value: path.join(config.configIndividualPath, e.name)
+                    }));
+            }
+        },
+        {
             type: 'toggle',
             name: 'dryRun',
             message: 'Dry run? (show what would happen without making changes)',
@@ -73,8 +89,8 @@ export default async function syncConfig() {
             type: 'select',
             name: 'type',
             message: 'Sync Type?',
-            choices: [
-                { title: 'UPDATE', value: 'UPDATE' },
+            choices: (prev, values) => [
+                values.direction == 'sync_to_configIndividual' ? { title: 'Create if not exists', value: 'CREATE_IF_NOT_EXISTS' } : { title: 'UPDATE', value: 'UPDATE' },
                 { title: 'OVERWRITE', value: 'OVERWRITE' }
             ]
         }
@@ -139,6 +155,13 @@ export default async function syncConfig() {
                 sourcePaths = [findConfigDirNamedConfigIn(sourceParent)];
                 destPaths = [findConfigDirNamedConfigIn(destParent)];
                 break;
+            }
+
+            case 'sync_to_configIndividual': {
+                const sourceParent = path.resolve(config.configIndividualPath, '..');
+
+                sourcePaths = [findConfigDirNamedConfigIn(sourceParent)];
+                destPaths = [path.resolve(config.configIndividualPath, responses.configIndividualSelection)]
             }
         }
 
@@ -210,6 +233,16 @@ function processMultiple(responses, dryRun, sourcePaths, destPaths) {
 
             console.log();
             console.log(chalk.green(`Summary: Deleted ${deletedCount} items, Copied ${summary.copied} files.`));
+            break;
+        
+        case "CREATE_IF_NOT_EXISTS":
+            console.log(chalk.yellow(`Updating files from ${sourcePaths.join(', ')} → ${destPaths.join(', ')}`));
+            summary = { added: 0, updated: 0 };
+            for(let i = 0; i < sourcePaths.length && i < destPaths.length; i++) {
+                FS.copyUpdatedFiles(sourcePaths[i], destPaths[i], dryRun, summary, ["wegas.properties", "path.yaml"], true);
+            }
+            console.log();
+            console.log(chalk.green(`Summary: ${summary.updated} files added or updated.`));
             break;
     }
 
