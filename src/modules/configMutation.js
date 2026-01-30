@@ -4,13 +4,17 @@ import chalk from "chalk";
 import { Config } from "../utils/config/config.js";
 import FS from "fs"
 import YAML from "yaml";
-import { YAMLMap, YAMLSeq } from "yaml/types";
+import { YAMLMap, YAMLSeq } from "yaml";
 import fg from "fast-glob";
 
 export default async function mutateConfig() {
     console.log()
 
     const config = await Config.getConfig();
+    const configDirectories = [
+        { title: '[Update all]', value: '*' },
+        ...FS.readdirSync(config.configIndividualPath, { withFileTypes: true }).filter(dirent => dirent.isDirectory()).map(dirent => { return { title: dirent.name, value: dirent.name } })
+    ]
 
     let success = true;
 
@@ -20,17 +24,22 @@ export default async function mutateConfig() {
             name: 'mergeType',
             message: 'Select Merge Type:',
             choices: [
-                { title: 'Only Create missing Keys', value: 'only_create' },
-                { title: 'Create, Update and Overwrite Keys', value: 'create_update_overwrite' },
-                { title: 'Remove missing Keys', value: 'remove_missing' },
-                { title: 'Sync Config with ConfigIndividual', value: 'sync_with_individual' }
+                { title: 'Only Create missing Keys (add missing keys from source to target)', value: 'only_create' },
+                { title: 'Create, Update and Overwrite Keys (copy everything except keys that only exist in target)', value: 'create_update_overwrite' },
+                { title: 'Remove missing Keys (remove all keys from target that don\'t exist in source)', value: 'remove_missing' }
             ]
         },
         {
             type: 'toggle',
             name: 'mergeClients',
-            message: 'Merge Clients?',
+            message: 'Include Mand? (Apply changes to 1_, 2_, ...)',
             active: false
+        },
+        {
+            type: 'autocomplete',
+            name: 'configDest',
+            message: 'Update Target?',
+            choices: configDirectories
         },
         {
             type: 'toggle',
@@ -51,17 +60,22 @@ export default async function mutateConfig() {
 
 
     if (success) {
-        const files = await filePicker(path.join(path.dirname(config.configIndividualPathEclipse), "config", "yaml"), path.join(path.dirname(config.configIndividualPathEclipse), "config", "yaml"));
+        const sourceConfigs = await filePicker(path.join(path.dirname(config.configIndividualPathEclipse), "config", "yaml"),
+            path.join(path.dirname(config.configIndividualPathEclipse), "config", "yaml"));
+
+        const configsToUpdate = responses.configDest == '*'
+            ? FS.readdirSync(config.configIndividualPath, { withFileTypes: true }).filter(f => f.isDirectory()).map(f => f.name)
+            : [responses.configDest];
 
         switch (responses.mergeType) {
             case 'only_create':
-                await processAddMissing(files, config.configIndividualPathEclipse, responses.mergeClients, responses.dryRun);
+                await processAddMissing(sourceConfigs, config.configIndividualPathEclipse, configsToUpdate, responses.mergeClients, responses.dryRun);
                 break;
             case 'remove_missing':
-                await processRemoveMissing(files, config.configIndividualPathEclipse, responses.mergeClients, responses.dryRun);
+                await processRemoveMissing(sourceConfigs, config.configIndividualPathEclipse, configsToUpdate, responses.mergeClients, responses.dryRun);
                 break;
             case 'create_update_overwrite':
-                await processMergeOverwrite(files, config.configIndividualPathEclipse, responses.mergeClients, responses.dryRun);
+                await processMergeOverwrite(sourceConfigs, config.configIndividualPathEclipse, configsToUpdate, responses.mergeClients, responses.dryRun);
                 break;
         }
 
@@ -86,13 +100,13 @@ export default async function mutateConfig() {
             if(confirmationResults.confirmation){
                 switch (responses.mergeType) {
                     case 'only_create':
-                        await processAddMissing(files, config.configIndividualPathEclipse, responses.mergeClients, false);
+                        await processAddMissing(sourceConfigs, config.configIndividualPathEclipse, configsToUpdate, responses.mergeClients, false);
                         break;
                     case 'remove_missing':
-                        await processRemoveMissing(files, config.configIndividualPathEclipse, responses.mergeClients, false);
+                        await processRemoveMissing(sourceConfigs, config.configIndividualPathEclipse, configsToUpdate, responses.mergeClients, false);
                         break;
                     case 'create_update_overwrite':
-                        await processMergeOverwrite(files, config.configIndividualPathEclipse, responses.mergeClients, false);
+                        await processMergeOverwrite(sourceConfigs, config.configIndividualPathEclipse, configsToUpdate, responses.mergeClients, false);
                         break;
                 }
             }
@@ -101,33 +115,30 @@ export default async function mutateConfig() {
     }
 }
 
-async function processMergeOverwrite(filesToUpdate, configIndividualPathEclipse, mergeClients, dryRun) {
-    await processEachFile(filesToUpdate, configIndividualPathEclipse, mergeClients, dryRun, mergeOverwriteNodes);
+async function processMergeOverwrite(filesToUpdate, configIndividualPathEclipse, configsToUpdate, mergeClients, dryRun) {
+    await processInEachFile(filesToUpdate, configIndividualPathEclipse,
+        configsToUpdate, mergeClients, dryRun, mergeOverwriteNodes);
 }
 
-async function processRemoveMissing(filesToUpdate, configIndividualPathEclipse, mergeClients, dryRun) {
-    await processEachFile(filesToUpdate, configIndividualPathEclipse, mergeClients, dryRun, removeMissingNodes);
+async function processRemoveMissing(filesToUpdate, configIndividualPathEclipse, configsToUpdate, mergeClients, dryRun) {
+    await processInEachFile(filesToUpdate, configIndividualPathEclipse,
+        configsToUpdate, mergeClients, dryRun, removeMissingNodes);
 }
 
-async function processAddMissing(filesToUpdate, configIndividualPathEclipse, mergeClients, dryRun) {
-    await processEachFile(filesToUpdate, configIndividualPathEclipse, mergeClients, dryRun, addMissingNodes);
+async function processAddMissing(filesToUpdate, configIndividualPathEclipse, configsToUpdate, mergeClients, dryRun) {
+    await processInEachFile(filesToUpdate, configIndividualPathEclipse,
+        configsToUpdate, mergeClients, dryRun, addMissingNodes);
 }
 
-async function processEachFile(filesToUpdate, configIndividualPathEclipse, mergeClients, dryRun, processAction) {
+async function processEachFile(filesToUpdate, configIndividualPathEclipse, configsToUpdate, mergeClients, dryRun, processAction) {
     let updatedFiles = 0;
     const globalConfig = path.join(path.dirname(configIndividualPathEclipse), "config");
     for(const file of filesToUpdate) {
-        const individualConfigs = FS.readdirSync(configIndividualPathEclipse, { withFileTypes: true });
-
-        for(const c of individualConfigs) {
-            if(!c.isDirectory()) continue;
-            const individualConfigPath = path.join(configIndividualPathEclipse, c.name, "yaml", file);
-
+        for(const c of configsToUpdate) {
+            const individualConfigPath = path.join(configIndividualPathEclipse, c, "yaml", file);
             const relatedConfigsForFile = await getRelatedConfigs(individualConfigPath, mergeClients);
             for(const config of relatedConfigsForFile) {
-
-                const hasUpdates = processInFile(path.join(globalConfig, "yaml", file), config, dryRun, processAction);
-
+                const hasUpdates = processAction(path.join(globalConfig, "yaml", file), config, dryRun);
                 if(hasUpdates) updatedFiles++;
             }
         }
@@ -142,6 +153,14 @@ async function processEachFile(filesToUpdate, configIndividualPathEclipse, merge
     }
 }
 
+// Loop through each file in filesToUpdate and executes processAction
+async function processInEachFile(filesToUpdate, configIndividualPathEclipse, configsToUpdate, mergeClients, dryRun, processAction) {
+    return await processEachFile(filesToUpdate, configIndividualPathEclipse,
+        configsToUpdate, mergeClients, dryRun,
+        (globalConfig, individualConfig, dryRun) => processInFile(globalConfig, individualConfig, dryRun, processAction));
+}
+
+// Executes processAction for a yaml config file
 function processInFile(compareFrom, compareTo, dryRun, processAction) {
     try {
         if(!FS.existsSync(compareFrom) || !FS.existsSync(compareTo)) return;
@@ -175,13 +194,14 @@ function processInFile(compareFrom, compareTo, dryRun, processAction) {
     }
 }
 
+// Returns related configs for a base config file (config.yaml, 1_config.yaml, 2_config.yaml, ...)
 async function getRelatedConfigs(file, withClients) {
     const dir = path.dirname(file);
     const ext = path.extname(file);
     const name = path.basename(file, ext);
 
     let patterns = [
-        path.join(dir, `${name}${ext}`),        // name.yaml
+        path.join(dir, `${name}${ext}`), // name.yaml
     ];
 
     if(withClients)
@@ -195,6 +215,7 @@ async function getRelatedConfigs(file, withClients) {
     })).map(f => f.replaceAll('/', path.sep));
 }
 
+// only_create
 function addMissingNodes(fromNode, toNode) {
     let hasChanges = false;
 
@@ -238,6 +259,7 @@ function addMissingNodes(fromNode, toNode) {
     }
 }
 
+// remove_missing
 function removeMissingNodes(fromNode, toNode) {
     let hasChanges = false;
 
@@ -284,6 +306,7 @@ function removeMissingNodes(fromNode, toNode) {
     return false;
 }
 
+// create_update_overwrite
 function mergeOverwriteNodes(fromNode, toNode) {
     let hasChanges = false;
 
@@ -344,7 +367,7 @@ async function filePicker(startDir = process.cwd(), navRootDir = process.cwd()) 
         const choices = [
             { title: '[Dir] .  (Select Current Directory)', value: '.', isDirectory: true },
             ...entries.map(e => ({
-                title: e.isDirectory() ? `[Dir] ${e.name}` : e.name,
+                title: e.isDirectory() ? `${e.name} [Dir]` : e.name,
                 value: e.name,
                 isDirectory: e.isDirectory()
             })).sort((a, b) => a.isDirectory && !b.isDirectory ? -1 : (!a.isDirectory && b.isDirectory ? 1 : a.value.localeCompare(b.value)))
