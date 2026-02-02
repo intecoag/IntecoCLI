@@ -67,13 +67,13 @@ export default async function syncConfig() {
             name: 'configIndividualSelection',
             message: 'ConfigIndividual (Destination)?',
             choices: (prev, values) => {
-                const entries = readdirSync(config.configIndividualPath, { withFileTypes: true });
+                const entries = readdirSync(config.configIndividualPathEclipse, { withFileTypes: true });
 
                 return entries
                     .filter(e => e.isDirectory())
                     .map(e => ({
                         title: e.name,
-                        value: path.join(config.configIndividualPath, e.name)
+                        value: path.join(config.configIndividualPathEclipse, e.name)
                     }));
             }
         },
@@ -90,7 +90,7 @@ export default async function syncConfig() {
             name: 'type',
             message: 'Sync Type?',
             choices: (prev, values) => [
-                values.direction == 'sync_to_configIndividual' ? { title: 'Create if not exists', value: 'CREATE_IF_NOT_EXISTS' } : { title: 'UPDATE', value: 'UPDATE' },
+                values.direction == 'sync_to_configIndividual' ? { title: 'CREATE (if not exists)', value: 'CREATE_IF_NOT_EXISTS' } : { title: 'UPDATE', value: 'UPDATE' },
                 { title: 'OVERWRITE', value: 'OVERWRITE' }
             ]
         }
@@ -158,10 +158,10 @@ export default async function syncConfig() {
             }
 
             case 'sync_to_configIndividual': {
-                const sourceParent = path.resolve(config.configIndividualPath, '..');
+                const sourceParent = path.resolve(config.configIndividualPathEclipse, '..');
 
                 sourcePaths = [findConfigDirNamedConfigIn(sourceParent)];
-                destPaths = [path.resolve(config.configIndividualPath, responses.configIndividualSelection)]
+                destPaths = [path.resolve(config.configIndividualPathEclipse, responses.configIndividualSelection)]
             }
         }
 

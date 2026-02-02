@@ -13,7 +13,8 @@ export default async function mutateConfig() {
     const config = await Config.getConfig();
     const configDirectories = [
         { title: '[Update all]', value: '*' },
-        ...FS.readdirSync(config.configIndividualPath, { withFileTypes: true }).filter(dirent => dirent.isDirectory()).map(dirent => { return { title: dirent.name, value: dirent.name } })
+        ...FS.readdirSync(config.configIndividualPathEclipse, { withFileTypes: true }).filter(dirent => dirent.isDirectory())
+            .map(dirent => { return { title: dirent.name, value: dirent.name } })
     ]
 
     let success = true;
@@ -64,7 +65,7 @@ export default async function mutateConfig() {
             path.join(path.dirname(config.configIndividualPathEclipse), "config", "yaml"));
 
         const configsToUpdate = responses.configDest == '*'
-            ? FS.readdirSync(config.configIndividualPath, { withFileTypes: true }).filter(f => f.isDirectory()).map(f => f.name)
+            ? FS.readdirSync(config.configIndividualPathEclipse, { withFileTypes: true }).filter(f => f.isDirectory()).map(f => f.name)
             : [responses.configDest];
 
         switch (responses.mergeType) {
