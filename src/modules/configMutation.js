@@ -1,11 +1,12 @@
 import prompts from "prompts";
-import path, { relative } from "path";
 import chalk from "chalk";
 import { Config } from "../utils/config/config.js";
 import FS from "fs"
+import * as CliFS from "../utils/fs/FS.js";
 import YAML from "yaml";
 import { YAMLMap, YAMLSeq } from "yaml";
 import fg from "fast-glob";
+import path from "path";
 
 export default async function mutateConfig() {
     console.log()
@@ -61,7 +62,7 @@ export default async function mutateConfig() {
 
 
     if (success) {
-        const sourceConfigs = await filePicker(path.join(path.dirname(config.configIndividualPathEclipse), "config", "yaml"),
+        const sourceConfigs = await CliFS.FS.filePicker(path.join(path.dirname(config.configIndividualPathEclipse), "config", "yaml"),
             path.join(path.dirname(config.configIndividualPathEclipse), "config", "yaml"));
 
         const configsToUpdate = responses.configDest == '*'
@@ -356,67 +357,4 @@ function nodeToJs(node) {
 
 function deepEqual(a, b) {
     return JSON.stringify(a) === JSON.stringify(b);
-}
-
-
-async function filePicker(startDir = process.cwd(), navRootDir = process.cwd()) {
-    let current = startDir;
-
-    while(true) {
-        const entries = FS.readdirSync(current, { withFileTypes: true });
-
-        const choices = [
-            { title: '[Dir] .  (Select Current Directory)', value: '.', isDirectory: true },
-            ...entries.map(e => ({
-                title: e.isDirectory() ? `${e.name} [Dir]` : e.name,
-                value: e.name,
-                isDirectory: e.isDirectory()
-            })).sort((a, b) => a.isDirectory && !b.isDirectory ? -1 : (!a.isDirectory && b.isDirectory ? 1 : a.value.localeCompare(b.value)))
-        ]
-
-        if(toRelative(navRootDir, current) !== "") {
-            choices.unshift({ title: '[Dir] .. (Go Up one Directory)', value: '..', isDirectory: true });
-        }
-
-        const { file } = await prompts({
-            type: 'autocomplete',
-            name: "file",
-            message: `Pick Files: ${current}`,
-            choices
-        });
-
-        const picked = choices.find(c => c.value === file);
-
-        if(picked.isDirectory) {
-            const dir = picked.value;
-            if(dir === ".") return getAllFiles(current).map(e => toRelative(navRootDir, e));
-            current = dir === ".." ? path.dirname(current) : path.join(current, dir);
-        }
-        else {
-            return [toRelative(navRootDir, path.join(current, picked.value))];
-        }
-    }
-}
-
-function toRelative(root, absolute) {
-    const rel = path.relative(root, absolute);
-    return rel;
-}
-
-function getAllFiles(dir) {
-    const entries = FS.readdirSync(dir, { withFileTypes: true });
-    const files = [];
-
-    for(const entry of entries) {
-        const fullPath = path.join(dir, entry.name);
-
-        if(entry.isDirectory()) {
-            files.push(...getAllFiles(fullPath));
-        }
-        else {
-            files.push(fullPath);
-        }
-    }
-
-    return files;
 }
