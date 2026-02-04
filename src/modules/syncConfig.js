@@ -1,5 +1,5 @@
 import prompts from "prompts";
-import { mkdirSync, existsSync, readdirSync, rmSync } from "fs";
+import { mkdirSync, existsSync, readdirSync, rmSync, copyFileSync, statSync } from "fs";
 import path from "path";
 import chalk from "chalk";
 import { Config } from "../utils/config/config.js";
@@ -9,9 +9,7 @@ export default async function syncConfig() {
     console.log()
 
     const config = await Config.getConfig();
-
     const configDirectoriesEclipse = readdirSync(config.configIndividualPathEclipse, { withFileTypes: true }).filter(dirent => dirent.isDirectory()).map(dirent => { return { title: dirent.name } })
-
     const configDirectories = readdirSync(config.configIndividualPath, { withFileTypes: true }).filter(dirent => dirent.isDirectory()).map(dirent => { return { title: dirent.name } })
 
     let success = true;
@@ -66,16 +64,11 @@ export default async function syncConfig() {
             type: (prev, values) => values.direction == 'sync_to_configIndividual' ? 'autocomplete' : null,
             name: 'configIndividualSelection',
             message: 'ConfigIndividual (Destination)?',
-            choices: (prev, values) => {
-                const entries = readdirSync(config.configIndividualPathEclipse, { withFileTypes: true });
-
-                return entries
-                    .filter(e => e.isDirectory())
-                    .map(e => ({
-                        title: e.name,
-                        value: path.join(config.configIndividualPathEclipse, e.name)
-                    }));
-            }
+            choices: readdirSync(config.configIndividualPathEclipse, { withFileTypes: true }).filter(e => e.isDirectory())
+                        .map(e => ({
+                            title: e.name,
+                            value: path.join(config.configIndividualPathEclipse, e.name)
+                        }))
         },
         {
             type: 'toggle',
@@ -106,7 +99,7 @@ export default async function syncConfig() {
 
 
     if (success) {
-        let sourcePaths, destPaths;
+        let sourcePaths, destPaths, syncFiles;
 
         switch (responses.direction) {
             case 'import':
@@ -161,11 +154,19 @@ export default async function syncConfig() {
                 const sourceParent = path.resolve(config.configIndividualPathEclipse, '..');
 
                 sourcePaths = [findConfigDirNamedConfigIn(sourceParent)];
-                destPaths = [path.resolve(config.configIndividualPathEclipse, responses.configIndividualSelection)]
+                destPaths = [path.resolve(config.configIndividualPathEclipse, responses.configIndividualSelection)];
+
+                syncFiles = await FS.filePicker(path.resolve(config.configIndividualPathEclipse, '..', "config"), path.resolve(config.configIndividualPathEclipse, '..', "config"));
             }
         }
 
-        processMultiple(responses, responses.dryRun, sourcePaths, destPaths);
+        if(responses.direction != "sync_to_configIndividual")
+            processMultiple(responses, responses.dryRun, sourcePaths, destPaths);
+        else
+            processSyncToIndividual(responses.dryRun, syncFiles,
+                responses.configIndividualSelection,
+                findConfigDirNamedConfigIn(path.resolve(config.configIndividualPathEclipse, '..')),
+                responses.type == "OVERWRITE");
 
         if (responses.dryRun) {
             console.log()
@@ -186,13 +187,61 @@ export default async function syncConfig() {
             })
 
             if(confirmationResults.confirmation){
-                processMultiple(responses, false, sourcePaths, destPaths);
+                        if(responses.direction != "sync_to_configIndividual")
+                            processMultiple(responses, false, sourcePaths, destPaths);
+                        else
+                            processSyncToIndividual(false, syncFiles,
+                                responses.configIndividualSelection,
+                                findConfigDirNamedConfigIn(path.resolve(config.configIndividualPathEclipse, '..')),
+                                responses.type == "OVERWRITE");
             }
         }
         console.log();
     }
 }
 
+function processSyncToIndividual(dryRun, sourceFiles, targetConfigIndividual, configPath, overwrite) {
+    console.log();
+    let changed = 0;
+
+    sourceFiles.forEach(sourceFile => {
+        let shouldCopy = false;
+
+        let destPath = path.join(targetConfigIndividual, sourceFile);
+        let sourcePath = path.join(configPath, sourceFile);
+
+        if (overwrite || !existsSync(destPath)) {
+            shouldCopy = true;
+        }
+
+        let shouldCreateDirectory = shouldCopy && !existsSync(path.dirname(destPath));
+
+        if (shouldCopy) {
+            if (dryRun) {
+                if(shouldCreateDirectory) {
+                    console.log(chalk.blue(`[DryRun] Would create directory: ${path.dirname(destPath)}`));
+                }
+                console.log(chalk.blue(`[DryRun] Would ${overwrite ? "overwrite" : "create"} file: ${destPath}`));
+            } else {
+                if(shouldCreateDirectory){
+                    mkdirSync(path.dirname(destPath));
+                }
+                copyFileSync(sourcePath, destPath);
+            }
+            changed++;
+        }
+    });
+
+    console.log();
+    console.log(chalk.green(`Summary: Changed ${changed} items.`));
+
+    console.log();
+    if (dryRun) {
+        console.log(chalk.yellow("Dry run complete — no changes were made."));
+    } else {
+        console.log(chalk.green("Config sync completed successfully."));
+    }
+}
 
 function processMultiple(responses, dryRun, sourcePaths, destPaths) {
     console.log();
@@ -233,16 +282,6 @@ function processMultiple(responses, dryRun, sourcePaths, destPaths) {
 
             console.log();
             console.log(chalk.green(`Summary: Deleted ${deletedCount} items, Copied ${summary.copied} files.`));
-            break;
-        
-        case "CREATE_IF_NOT_EXISTS":
-            console.log(chalk.yellow(`Updating files from ${sourcePaths.join(', ')} → ${destPaths.join(', ')}`));
-            summary = { added: 0, updated: 0 };
-            for(let i = 0; i < sourcePaths.length && i < destPaths.length; i++) {
-                FS.copyUpdatedFiles(sourcePaths[i], destPaths[i], dryRun, summary, ["wegas.properties", "path.yaml"], true);
-            }
-            console.log();
-            console.log(chalk.green(`Summary: ${summary.updated} files added or updated.`));
             break;
     }
 
