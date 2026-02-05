@@ -18,6 +18,7 @@ import commands from "./ressources/cmds.json" with {type: 'json'};
 import packageJson from "../package.json" with {type: 'json'}
 import extdSearch from './modules/extdSearch.js';
 import syncConfig from './modules/syncConfig.js';
+import configMutation from './modules/configMutation.js';
 import bundleProduct from './modules/bundleProduct.js';
 
 import updateNotifier from 'update-notifier';
@@ -86,6 +87,9 @@ switch (cli.input[0]) {
         break;
     case "sync_config":
         syncConfig();
+        break;
+    case "config_mutation":
+        configMutation();
         break;
     case "bundle_product":
         bundleProduct(cli);

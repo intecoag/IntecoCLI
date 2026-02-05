@@ -19,6 +19,7 @@
     "cli-meow-help": "^4.0.0",
     "cli-table3": "^0.6.5",
     "csv-parser": "^3.0.0",
+    "fast-glob": "^3.3.3",
     "fuzzysort": "^3.1.0",
     "graphql": "^16.6.0",
     "meow": "^14.0.0",

@@ -8,6 +8,9 @@
     "config_rewrite": {
         "desc": "Rewrites WEGAS-Config"
     },
+    "config_mutation": {
+        "desc": "Synchronize Configs with new/changed properties"
+    },
     "sync_config": {
         "desc": "Synchronize Config/ConfigIndividual-Folders between Work and Repository (Eclipse-Repo)"
     },

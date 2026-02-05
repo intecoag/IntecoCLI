@@ -1,5 +1,5 @@
 import prompts from "prompts";
-import { mkdirSync, existsSync, readdirSync, rmSync } from "fs";
+import { mkdirSync, existsSync, readdirSync, rmSync, copyFileSync, statSync } from "fs";
 import path from "path";
 import chalk from "chalk";
 import { Config } from "../utils/config/config.js";
@@ -9,9 +9,7 @@ export default async function syncConfig() {
     console.log()
 
     const config = await Config.getConfig();
-
     const configDirectoriesEclipse = readdirSync(config.configIndividualPathEclipse, { withFileTypes: true }).filter(dirent => dirent.isDirectory()).map(dirent => { return { title: dirent.name } })
-
     const configDirectories = readdirSync(config.configIndividualPath, { withFileTypes: true }).filter(dirent => dirent.isDirectory()).map(dirent => { return { title: dirent.name } })
 
     let success = true;
@@ -29,7 +27,8 @@ export default async function syncConfig() {
                 { title: 'Import Everything (Repository → Work)', value: 'import_all' },
                 { title: 'Export Everything (Work → Repository)', value: 'export_all' },
                 { title: 'Import All ConfigIndividual (Repository → Work)', value: 'import_all_individuals' },
-                { title: 'Export All ConfigIndividual (Work → Repository)', value: 'export_all_individuals' }
+                { title: 'Export All ConfigIndividual (Work → Repository)', value: 'export_all_individuals' },
+                { title: 'Sync from Config to ConfigIndividual (Repository → Repository)', value: 'sync_to_configIndividual' },
             ]
         },
         {
@@ -62,6 +61,16 @@ export default async function syncConfig() {
             }
         },
         {
+            type: (prev, values) => values.direction == 'sync_to_configIndividual' ? 'autocomplete' : null,
+            name: 'configIndividualSelection',
+            message: 'ConfigIndividual (Destination)?',
+            choices: readdirSync(config.configIndividualPathEclipse, { withFileTypes: true }).filter(e => e.isDirectory())
+                        .map(e => ({
+                            title: e.name,
+                            value: path.join(config.configIndividualPathEclipse, e.name)
+                        }))
+        },
+        {
             type: 'toggle',
             name: 'dryRun',
             message: 'Dry run? (show what would happen without making changes)',
@@ -73,8 +82,8 @@ export default async function syncConfig() {
             type: 'select',
             name: 'type',
             message: 'Sync Type?',
-            choices: [
-                { title: 'UPDATE', value: 'UPDATE' },
+            choices: (prev, values) => [
+                values.direction == 'sync_to_configIndividual' ? { title: 'CREATE (if not exists)', value: 'CREATE_IF_NOT_EXISTS' } : { title: 'UPDATE', value: 'UPDATE' },
                 { title: 'OVERWRITE', value: 'OVERWRITE' }
             ]
         }
@@ -90,7 +99,7 @@ export default async function syncConfig() {
 
 
     if (success) {
-        let sourcePaths, destPaths;
+        let sourcePaths, destPaths, syncFiles;
 
         switch (responses.direction) {
             case 'import':
@@ -140,9 +149,24 @@ export default async function syncConfig() {
                 destPaths = [findConfigDirNamedConfigIn(destParent)];
                 break;
             }
+
+            case 'sync_to_configIndividual': {
+                const sourceParent = path.resolve(config.configIndividualPathEclipse, '..');
+
+                sourcePaths = [findConfigDirNamedConfigIn(sourceParent)];
+                destPaths = [path.resolve(config.configIndividualPathEclipse, responses.configIndividualSelection)];
+
+                syncFiles = await FS.filePicker(path.resolve(config.configIndividualPathEclipse, '..', "config"), path.resolve(config.configIndividualPathEclipse, '..', "config"));
+            }
         }
 
-        processMultiple(responses, responses.dryRun, sourcePaths, destPaths);
+        if(responses.direction != "sync_to_configIndividual")
+            processMultiple(responses, responses.dryRun, sourcePaths, destPaths);
+        else
+            processSyncToIndividual(responses.dryRun, syncFiles,
+                responses.configIndividualSelection,
+                findConfigDirNamedConfigIn(path.resolve(config.configIndividualPathEclipse, '..')),
+                responses.type == "OVERWRITE");
 
         if (responses.dryRun) {
             console.log()
@@ -163,13 +187,61 @@ export default async function syncConfig() {
             })
 
             if(confirmationResults.confirmation){
-                processMultiple(responses, false, sourcePaths, destPaths);
+                        if(responses.direction != "sync_to_configIndividual")
+                            processMultiple(responses, false, sourcePaths, destPaths);
+                        else
+                            processSyncToIndividual(false, syncFiles,
+                                responses.configIndividualSelection,
+                                findConfigDirNamedConfigIn(path.resolve(config.configIndividualPathEclipse, '..')),
+                                responses.type == "OVERWRITE");
             }
         }
         console.log();
     }
 }
 
+function processSyncToIndividual(dryRun, sourceFiles, targetConfigIndividual, configPath, overwrite) {
+    console.log();
+    let changed = 0;
+
+    sourceFiles.forEach(sourceFile => {
+        let shouldCopy = false;
+
+        let destPath = path.join(targetConfigIndividual, sourceFile);
+        let sourcePath = path.join(configPath, sourceFile);
+
+        if (overwrite || !existsSync(destPath)) {
+            shouldCopy = true;
+        }
+
+        let shouldCreateDirectory = shouldCopy && !existsSync(path.dirname(destPath));
+
+        if (shouldCopy) {
+            if (dryRun) {
+                if(shouldCreateDirectory) {
+                    console.log(chalk.blue(`[DryRun] Would create directory: ${path.dirname(destPath)}`));
+                }
+                console.log(chalk.blue(`[DryRun] Would ${overwrite ? "overwrite" : "create"} file: ${destPath}`));
+            } else {
+                if(shouldCreateDirectory){
+                    mkdirSync(path.dirname(destPath));
+                }
+                copyFileSync(sourcePath, destPath);
+            }
+            changed++;
+        }
+    });
+
+    console.log();
+    console.log(chalk.green(`Summary: Changed ${changed} items.`));
+
+    console.log();
+    if (dryRun) {
+        console.log(chalk.yellow("Dry run complete — no changes were made."));
+    } else {
+        console.log(chalk.green("Config sync completed successfully."));
+    }
+}
 
 function processMultiple(responses, dryRun, sourcePaths, destPaths) {
     console.log();

@@ -1,10 +1,10 @@
 import { statSync, mkdirSync, existsSync, copyFileSync, readdirSync } from "fs";
 import chalk from "chalk";
-import path from "path";
-
+import path, { relative } from "path";
+import prompts from "prompts";
 
 export class FS {
-    static copyUpdatedFiles(sourceDir, destDir, dryRun = false, stats = { added: 0, updated: 0 }, filenameBlacklist = []) {
+    static copyUpdatedFiles(sourceDir, destDir, dryRun = false, stats = { added: 0, updated: 0 }, filenameBlacklist = [], onlyCopyNonExistant = false) {
         if (!existsSync(destDir)) {
             if (dryRun) {
                 console.log(chalk.gray(`[DryRun] Would create directory: ${destDir}`));
@@ -30,7 +30,7 @@ export class FS {
 
                 if (!existsSync(destPath)) {
                     shouldCopy = true;
-                } else {
+                } else if(!onlyCopyNonExistant) {
                     const sourceStat = statSync(sourcePath);
                     const destStat = statSync(destPath);
 
@@ -84,5 +84,61 @@ export class FS {
         }
     }
 
+    
+    static async filePicker(startDir = process.cwd(), navRootDir = process.cwd()) {
+        let current = startDir;
+    
+        while(true) {
+            const entries = readdirSync(current, { withFileTypes: true });
+    
+            const choices = [
+                { title: '[Dir] .  (Select Current Directory)', value: '.', isDirectory: true },
+                ...entries.map(e => ({
+                    title: e.isDirectory() ? `${e.name} [Dir]` : e.name,
+                    value: e.name,
+                    isDirectory: e.isDirectory()
+                })).sort((a, b) => a.isDirectory && !b.isDirectory ? -1 : (!a.isDirectory && b.isDirectory ? 1 : a.value.localeCompare(b.value)))
+            ]
+    
+            if(path.relative(navRootDir, current) !== "") {
+                choices.unshift({ title: '[Dir] .. (Go Up one Directory)', value: '..', isDirectory: true });
+            }
+    
+            const { file } = await prompts({
+                type: 'autocomplete',
+                name: "file",
+                message: `Pick Files: ${current}`,
+                choices
+            });
+    
+            const picked = choices.find(c => c.value === file);
+    
+            if(picked.isDirectory) {
+                const dir = picked.value;
+                if(dir === ".") return FS.getAllFiles(current).map(e => path.relative(navRootDir, e));
+                current = dir === ".." ? path.dirname(current) : path.join(current, dir);
+            }
+            else {
+                return [path.relative(navRootDir, path.join(current, picked.value))];
+            }
+        }
+    }
 
+    static getAllFiles(dir) {
+        const entries = readdirSync(dir, { withFileTypes: true });
+        const files = [];
+
+        for(const entry of entries) {
+            const fullPath = path.join(dir, entry.name);
+
+            if(entry.isDirectory()) {
+                files.push(...FS.getAllFiles(fullPath));
+            }
+            else {
+                files.push(fullPath);
+            }
+        }
+
+        return files;
+    }
 }
