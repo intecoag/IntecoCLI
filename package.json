@@ -12,6 +12,8 @@
   "license": "ISC",
   "repository": "https://github.com/intecoag/IntecoCLI",
   "dependencies": {
+    "@azure/identity": "^4.13.0",
+    "@azure/storage-blob": "^12.31.0",
     "7zip-bin": "^5.2.0",
     "adb-ts": "^6.2.0",
     "application-config": "^3.0.0",
