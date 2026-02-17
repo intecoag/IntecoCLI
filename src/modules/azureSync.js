@@ -366,6 +366,7 @@ async function executeOperations(mode, operations) {
         const operation = operations[index];
         try {
             if (operation.type === "upload") {
+                const totalBytes = operation.localFile.size ?? null;
                 spinner.text = `Uploading ${operation.localFile.relativePath} (${index + 1}/${operations.length})`;
                 const md5Base64 = operation.localFile.md5Base64
                     ?? await getLocalMd5Base64(operation.localFile.filePath);
@@ -373,15 +374,30 @@ async function executeOperations(mode, operations) {
                     operation.containerClient,
                     operation.localFile.blobPath,
                     operation.localFile.filePath,
-                    md5Base64
+                    md5Base64,
+                    progress => {
+                        if (!totalBytes) {
+                            return;
+                        }
+                        const percent = ((progress.loadedBytes / totalBytes) * 100).toFixed(1);
+                        spinner.text = `Uploading ${operation.localFile.relativePath} ${percent}% (${formatBytes(progress.loadedBytes)}/${formatBytes(totalBytes)})`;
+                    }
                 );
             } else if (operation.type === "download") {
+                const totalBytes = operation.localFile.size ?? null;
                 spinner.text = `Downloading ${operation.localFile.relativePath} (${index + 1}/${operations.length})`;
                 await ensureDirectory(path.dirname(operation.localFile.filePath));
                 await operation.azure.downloadToFile(
                     operation.containerClient,
                     operation.localFile.blobPath,
-                    operation.localFile.filePath
+                    operation.localFile.filePath,
+                    progress => {
+                        if (!totalBytes) {
+                            return;
+                        }
+                        const percent = ((progress.loadedBytes / totalBytes) * 100).toFixed(1);
+                        spinner.text = `Downloading ${operation.localFile.relativePath} ${percent}% (${formatBytes(progress.loadedBytes)}/${formatBytes(totalBytes)})`;
+                    }
                 );
             } else if (operation.type === "delete") {
                 spinner.text = `Deleting ${operation.blobPath} (${index + 1}/${operations.length})`;
@@ -504,7 +520,8 @@ async function buildPullOperations(syncState, azure) {
                     localFile: {
                         filePath: localPath,
                         relativePath: path.relative(entry.rootDir, localPath),
-                        blobPath: blob.name
+                        blobPath: blob.name,
+                        size: blob.properties?.contentLength ?? null
                     }
                 });
             }
@@ -537,4 +554,15 @@ async function listRemoteBlobNames(containerClient, includes) {
         remoteBlobs.add(blob.name);
     }
     return remoteBlobs;
+}
+
+function formatBytes(bytes) {
+    if (!bytes || bytes <= 0) {
+        return "0 B";
+    }
+
+    const units = ["B", "KB", "MB", "GB", "TB"];
+    const index = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+    const value = bytes / Math.pow(1024, index);
+    return `${value.toFixed(value >= 10 || index === 0 ? 0 : 1)} ${units[index]}`;
 }

@@ -56,18 +56,19 @@ export class AzureHelper {
         }
     }
 
-    async uploadFile(containerClient, blobPath, filePath, md5Base64) {
+    async uploadFile(containerClient, blobPath, filePath, md5Base64, onProgress) {
         const blockBlobClient = containerClient.getBlockBlobClient(blobPath);
         const md5Buffer = md5Base64 ? Buffer.from(md5Base64, "base64") : undefined;
 
         await blockBlobClient.uploadFile(filePath, {
-            blobHTTPHeaders: md5Buffer ? { blobContentMD5: md5Buffer } : undefined
+            blobHTTPHeaders: md5Buffer ? { blobContentMD5: md5Buffer } : undefined,
+            onProgress
         });
     }
 
-    async downloadToFile(containerClient, blobPath, filePath) {
+    async downloadToFile(containerClient, blobPath, filePath, onProgress) {
         const blockBlobClient = containerClient.getBlockBlobClient(blobPath);
-        await blockBlobClient.downloadToFile(filePath);
+        await blockBlobClient.downloadToFile(filePath, 0, 0, { onProgress });
     }
 
     async deleteBlob(containerClient, blobPath) {
