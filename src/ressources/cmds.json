@@ -49,5 +49,14 @@
     },
     "changelog": {
         "desc": "Shows the changelog history"
+    },
+    "azure_sync_config": {
+        "desc": "Creates or updates the .az-sync configuration file"
+    },
+    "azure_push": {
+        "desc": "Pushes local files to Azure Blob Storage using checksum comparison"
+    },
+    "azure_pull": {
+        "desc": "Pulls blobs to local files using checksum comparison"
     }
 }

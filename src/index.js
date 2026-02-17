@@ -20,6 +20,7 @@ import extdSearch from './modules/extdSearch.js';
 import syncConfig from './modules/syncConfig.js';
 import configMutation from './modules/configMutation.js';
 import bundleProduct from './modules/bundleProduct.js';
+import { azureCreateSyncConfig, azurePush, azurePull } from './modules/azureSync.js';
 
 import updateNotifier from 'update-notifier';
 
@@ -96,6 +97,15 @@ switch (cli.input[0]) {
         break;
     case "changelog":
         showChangelog();
+        break;
+    case "azure_sync_config":
+        azureCreateSyncConfig();
+        break;
+    case "azure_sync_push":
+        azurePush();
+        break;
+    case "azure_sync_pull":
+        azurePull();
         break;
     default:
         cli.showHelp()
