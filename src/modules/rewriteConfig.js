@@ -40,6 +40,16 @@ async function configRewrite(cli) {
         name: 'mnr',
         message: 'Mandant?',
         initial: '1'
+    }, {
+        type: 'autocomplete',
+        name: 'language',
+        message: 'Sprache?',
+        choices: [
+            { title: '<Nicht Verändern>', value: '?' },
+            { title: 'Deutsch', value: 'd' },
+            { title: 'Französisch', value: 'f' },
+            { title: 'Italienisch', value: 'i' }
+        ]
     }], {
         onCancel: () => {
             console.log()
@@ -58,6 +68,10 @@ async function configRewrite(cli) {
         // Rewrite wegas.properties
         const editorWegasProperties = createEditor(config.configIndividualPath + path.sep+"wegas.properties")
         editorWegasProperties.set("db.database", responses.dbName);
+
+        if(responses.language != '?') {
+            editorWegasProperties.set("language", responses.language)
+        }
         editorWegasProperties.save();
 
         // Rewrite path.yaml
