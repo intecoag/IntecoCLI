@@ -265,7 +265,7 @@ function processMultiple(responses, dryRun, sourcePaths, destPaths) {
             let deletedCount = 0;
             for(let i = 0; i < sourcePaths.length && i < destPaths.length; i++) {
                 if (existsSync(destPaths[i])) {
-                    deletedCount += countAndDeleteDir(destPaths[i], dryRun);
+                    deletedCount += countAndDeleteDir(destPaths[i], dryRun, ["wegas.properties", "path.yaml"]);
                     if (!dryRun) {
                         console.log(chalk.gray(`Deleted existing folder: ${destPaths[i]}`));
                     }
@@ -293,27 +293,47 @@ function processMultiple(responses, dryRun, sourcePaths, destPaths) {
     }
 }
 
-function countAndDeleteDir(dirPath, dryRun = false) {
+function countAndDeleteDir(dirPath, dryRun = false, filenameBlacklist = []) {
     let deletedCount = 0;
 
     if (existsSync(dirPath)) {
-        if (dryRun) {
-            console.log(chalk.red(`[DryRun] Would delete directory: ${dirPath}`));
-            // For dry run, recursively count files/directories without deleting
-            const entries = readdirSync(dirPath, { withFileTypes: true });
-            for (const entry of entries) {
-                const entryPath = path.join(dirPath, entry.name);
-                if (entry.isDirectory()) {
-                    deletedCount += countAndDeleteDir(entryPath, dryRun);
-                } else {
-                    deletedCount++;
+
+        let shouldKeepDirectory = false;
+
+        // For dry run, recursively count files/directories without deleting
+        const entries = readdirSync(dirPath, { withFileTypes: true });
+        for (const entry of entries) {
+            if(filenameBlacklist.includes(entry.name)){
+                shouldKeepDirectory = true; // Directory will not empty
+                continue;
+            }
+
+            const entryPath = path.join(dirPath, entry.name);
+            if (entry.isDirectory()) {
+                deletedCount += countAndDeleteDir(entryPath, dryRun, filenameBlacklist);
+                shouldKeepDirectory |= deletedCount != 0;
+            } else {
+                deletedCount++;
+                if(dryRun) {
                     console.log(chalk.red(`[DryRun] Would delete file: ${entryPath}`));
                 }
+                else {
+                    console.log(chalk.red(`Deleting file: ${entryPath}`));
+                    rmSync(entryPath, { recursive: false, force: true });
+                }
             }
+        }
+
+        if(!shouldKeepDirectory) {
+            if(dryRun) {
+                console.log(chalk.red(`[DryRun] Would delete directory: ${dirPath}`));
+            }
+            else {
+                console.log(chalk.red(`Deleting directory: ${dirPath}`));
+                rmSync(dirPath, { recursive: true, force: true });
+            }
+
             deletedCount++; // counting the directory itself
-        } else {
-            rmSync(dirPath, { recursive: true, force: true });
-            // Can't count after delete, so you may skip or count before if desired
         }
     }
     return deletedCount;
