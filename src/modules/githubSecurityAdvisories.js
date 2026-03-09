@@ -122,13 +122,13 @@ async function githubSecurityAdvisories() {
     console.log();
     spinner.fail('Error checking security advisories');
     
-    if (error.message.includes('Organization')) {
-      console.error(chalk.red(`✗ ${error.message}`));
-    } else if (error.message.includes('authentication')) {
+    if (error.message.startsWith('401')) {
       console.error(chalk.red(`✗ ${error.message}`));
       console.log(chalk.yellow('\nAuthentication setup:'));
       console.log(chalk.gray('  Option 1: Install GitHub CLI and run: gh auth login'));
       console.log(chalk.gray('  Option 2: Set GITHUB_TOKEN environment variable'));
+    } else if (error.message.startsWith('404')) {
+      console.error(chalk.red(`✗ ${error.message} - Organization or repository not found`));
     } else {
       console.error(chalk.red(`Error: ${error.message}`));
     }
@@ -150,7 +150,9 @@ async function fetchSecurityAdvisories(organization, repository, token) {
     return openAlerts;
   } catch (error) {
     // If the endpoint is not available or the repo is not accessible, return empty array
-    if (error.message.includes('404') || error.message.includes('403')) {
+    // 404: Resource not found (Dependabot disabled)
+    // 403: Access forbidden (Dependabot disabled or insufficient permissions)
+    if (error.message.startsWith('404') || error.message.startsWith('403')) {
       return [];
     }
     throw error;

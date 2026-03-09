@@ -56,12 +56,15 @@ export async function fetchGithubAPI(url, token) {
 
   if (!res.ok) {
     if (res.status === 404) {
-      throw new Error('Resource not found (404)');
+      throw new Error(`404: Resource not found`);
     }
-    if (res.status === 401 || res.status === 403) {
-      throw new Error('GitHub authentication failed. Please ensure your authentication is valid (run "gh auth login" or check GITHUB_TOKEN)');
+    if (res.status === 401) {
+      throw new Error('401: GitHub authentication failed');
     }
-    throw new Error(`GitHub API request failed: ${res.statusText}`);
+    if (res.status === 403) {
+      throw new Error('403: Access forbidden (Dependabot alerts may not be enabled)');
+    }
+    throw new Error(`${res.status}: GitHub API request failed: ${res.statusText}`);
   }
 
   return res;
