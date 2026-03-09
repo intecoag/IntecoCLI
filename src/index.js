@@ -21,6 +21,7 @@ import syncConfig from './modules/syncConfig.js';
 import configMutation from './modules/configMutation.js';
 import bundleProduct from './modules/bundleProduct.js';
 import { azureCreateSyncConfig, azurePush, azurePull } from './modules/azureSync.js';
+import githubSecurityAdvisories from './modules/githubSecurityAdvisories.js';
 
 import updateNotifier from 'update-notifier';
 
@@ -106,6 +107,9 @@ switch (cli.input[0]) {
         break;
     case "azure_sync_pull":
         azurePull();
+        break;
+    case "github_security_advisories":
+        githubSecurityAdvisories();
         break;
     default:
         cli.showHelp()

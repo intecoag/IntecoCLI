@@ -51,12 +51,15 @@
         "desc": "Shows the changelog history"
     },
     "azure_sync_config": {
-        "desc": "Creates or updates the .az-sync configuration file"
+        "desc": "Creates or updates the .az-sync configuration file (requires Azure-CLI)"
     },
     "azure_push": {
-        "desc": "Pushes local files to Azure Blob Storage using checksum comparison"
+        "desc": "Pushes local files to Azure Blob Storage using checksum comparison (requires Azure-CLI)"
     },
     "azure_pull": {
-        "desc": "Pulls blobs to local files using checksum comparison"
+        "desc": "Pulls blobs to local files using checksum comparison (requires Azure-CLI)"
+    },
+    "github_security_advisories": {
+        "desc": "Checks all GitHub repositories in an organization for open and unresolved security advisories (requires GitHub CLI or GITHUB_TOKEN)"
     }
 }
