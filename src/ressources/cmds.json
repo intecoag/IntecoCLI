@@ -53,10 +53,10 @@
     "azure_sync_config": {
         "desc": "Creates or updates the .az-sync configuration file (requires Azure-CLI)"
     },
-    "azure_push": {
+    "azure_sync_push": {
         "desc": "Pushes local files to Azure Blob Storage using checksum comparison (requires Azure-CLI)"
     },
-    "azure_pull": {
+    "azure_sync_pull": {
         "desc": "Pulls blobs to local files using checksum comparison (requires Azure-CLI)"
     },
     "github_security_advisories": {
