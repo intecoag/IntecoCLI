@@ -24,6 +24,7 @@ import { azureCreateSyncConfig, azurePush, azurePull } from './modules/azureSync
 import githubSecurityAdvisories from './modules/githubSecurityAdvisories.js';
 
 import updateNotifier from 'update-notifier';
+import { addGithubDeploymentKey } from './modules/githubDeploymentKey.js';
 
 updateNotifier({
     pkg: {
@@ -110,6 +111,9 @@ switch (cli.input[0]) {
         break;
     case "github_security_advisories":
         githubSecurityAdvisories();
+        break;
+    case "github_add_deploy_key":
+        addGithubDeploymentKey();
         break;
     default:
         cli.showHelp()
