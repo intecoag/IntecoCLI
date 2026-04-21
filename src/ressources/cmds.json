@@ -64,5 +64,8 @@
     },
     "github_add_deploy_key": {
         "desc": "Workflow to add a deployment key to a GitHub repository for a remote server (requires GitHub CLI)"
+    },
+    "github_list_deploy_keys": {
+        "desc": "Lists all deployment keys across all repositories in a GitHub organization with their last used dates (requires GitHub CLI or GITHUB_TOKEN)"
     }
 }
