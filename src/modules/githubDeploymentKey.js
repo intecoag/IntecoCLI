@@ -73,7 +73,11 @@ export async function addGithubDeploymentKey() {
           value: repo.name,
           description: repo.description || 'No description'
         })),
-        hint: 'Start typing to filter'
+        hint: 'Start typing to filter',
+        validate: (value) => {
+          const exists = repos.some(repo => repo.name === value);
+          return exists || 'Repository does not exist in this organization';
+        }
       }
     ], {
       onCancel: () => {
@@ -146,7 +150,8 @@ export async function addGithubDeploymentKey() {
 }
 
 function displayDeploymentKeyScript(organization, repository) {
-  const keyPath = '~/.ssh/id_ed25519_github_keys';
+  // Use organization and repository in the key name to avoid collisions
+  const keyPath = `~/.ssh/id_ed25519_github_${organization}_${repository}`;
   const deploymentKeyName = `${repository}-deployment-key`;
 
   console.log();
@@ -172,9 +177,7 @@ function generateBashScript(keyPath, keyName, organization, repository) {
   // Convert ~ to $HOME for proper expansion in bash
   const expandedKeyPath = keyPath.replace(/^~/, '$HOME');
   
-  return `#!/bin/bash
-set -e
-
+  return `
 # Create SSH directory if it doesn't exist
 mkdir -p ~/.ssh
 chmod 700 ~/.ssh
