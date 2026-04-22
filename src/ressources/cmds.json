@@ -56,13 +56,19 @@
     "azure_sync_config": {
         "desc": "Creates or updates the .az-sync configuration file (requires Azure-CLI)"
     },
-    "azure_push": {
+    "azure_sync_push": {
         "desc": "Pushes local files to Azure Blob Storage using checksum comparison (requires Azure-CLI)"
     },
-    "azure_pull": {
+    "azure_sync_pull": {
         "desc": "Pulls blobs to local files using checksum comparison (requires Azure-CLI)"
     },
     "github_security_advisories": {
         "desc": "Checks all GitHub repositories in an organization for open and unresolved security advisories (requires GitHub CLI or GITHUB_TOKEN)"
+    },
+    "github_add_deploy_key": {
+        "desc": "Workflow to add a deployment key to a GitHub repository for a remote server (requires GitHub CLI)"
+    },
+    "github_list_deploy_keys": {
+        "desc": "Lists all deployment keys across all repositories in a GitHub organization with their last used dates (requires GitHub CLI or GITHUB_TOKEN)"
     }
 }

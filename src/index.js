@@ -23,8 +23,10 @@ import configMutation from './modules/configMutation.js';
 import bundleProduct from './modules/bundleProduct.js';
 import { azureCreateSyncConfig, azurePush, azurePull } from './modules/azureSync.js';
 import githubSecurityAdvisories from './modules/githubSecurityAdvisories.js';
+import listGithubDeploymentKeys from './modules/githubDeploymentKeysList.js';
 
 import updateNotifier from 'update-notifier';
+import { addGithubDeploymentKey } from './modules/githubDeploymentKey.js';
 
 updateNotifier({
     pkg: {
@@ -114,6 +116,12 @@ switch (cli.input[0]) {
         break;
     case "github_security_advisories":
         githubSecurityAdvisories();
+        break;
+    case "github_add_deploy_key":
+        addGithubDeploymentKey();
+        break;
+    case "github_list_deploy_keys":
+        listGithubDeploymentKeys();
         break;
     default:
         cli.showHelp()
