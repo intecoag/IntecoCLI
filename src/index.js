@@ -17,6 +17,7 @@ import showChangelog from './modules/changelog.js';
 import commands from "./ressources/cmds.json" with {type: 'json'};
 import packageJson from "../package.json" with {type: 'json'}
 import extdSearch from './modules/extdSearch.js';
+import t009Search from './modules/t009Search.js';
 import syncConfig from './modules/syncConfig.js';
 import configMutation from './modules/configMutation.js';
 import bundleProduct from './modules/bundleProduct.js';
@@ -88,6 +89,9 @@ switch (cli.input[0]) {
         break;
     case "extd_search":
         extdSearch();
+        break;
+    case "t009_search":
+        t009Search();
         break;
     case "sync_config":
         syncConfig();

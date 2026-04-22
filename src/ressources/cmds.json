@@ -29,6 +29,9 @@
     "extd_search": {
         "desc": "Search EXTD/EXTI interactively with full text search"
     },
+    "t009_search": {
+        "desc": "Search t009 interactively with full text search"
+    },
     "set_cli_config": {
         "desc": "Configure the Inteco CLI"
     },
