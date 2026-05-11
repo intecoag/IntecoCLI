@@ -20,10 +20,10 @@
     "chalk": "^5.0.1",
     "cli-meow-help": "^4.0.0",
     "cli-table3": "^0.6.5",
-    "csv-parser": "^3.0.0",
+    "csv-parser": "^3.2.1",
     "fast-glob": "^3.3.3",
     "fuzzysort": "^3.1.0",
-    "graphql": "^16.13.2",
+    "graphql": "^16.14.0",
     "meow": "^14.1.0",
     "mysql-await": "^2.1.8",
     "n-readlines": "^3.4.0",
@@ -39,8 +39,8 @@
     "inteco": "src/index.js"
   },
   "devDependencies": {
-    "@commitlint/cli": "^20.5.3",
-    "@commitlint/config-conventional": "^20.5.3",
+    "@commitlint/cli": "^21.0.0",
+    "@commitlint/config-conventional": "^21.0.0",
     "husky": "^9.1.7",
     "semantic-release": "^25.0.3"
   },
