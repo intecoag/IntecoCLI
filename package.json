@@ -23,7 +23,7 @@
     "csv-parser": "^3.2.1",
     "fast-glob": "^3.3.3",
     "fuzzysort": "^3.1.0",
-    "graphql": "^16.14.2",
+    "graphql": "^17.0.1",
     "meow": "^14.1.0",
     "mysql-await": "^2.1.8",
     "n-readlines": "^3.4.0",
