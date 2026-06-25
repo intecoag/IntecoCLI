@@ -1,6 +1,7 @@
 ﻿#!/usr/bin/env node
 import cliMeowHelp from 'cli-meow-help';
 import meow from 'meow';
+import prompts from 'prompts';
 import { readFileSync } from 'node:fs';
 import adb_bridge from './modules/adbBridge.js';
 import adb_intent from './modules/adbIntentSender.js';
@@ -58,82 +59,125 @@ const cli = meow(helpText, {
     importMeta: import.meta,
 });
 
-switch (cli.input[0]) {
-    case "config_rewrite":
-        rewrite(cli)
-        break;
-    case "import_db":
-        importDB(cli)
-        break;
-    case "t003_rewrite":
-        t003Rewrite(cli)
-        break;
-    case "adb_bridge":
-        adb_bridge()
-        break;
-    case "adb_intent":
-        adb_intent()
-        break;
-    case "set_cli_config":
-        writeCLIConfig()
-        break;
-    case "dump_table_to_csv":
-        dumpTableToCSV()
-        break;
-    case "csv_merge":
-        csvMerge();
-        break;
-    case "graphql_schema_export":
-        graphqlSchemaExport();
-        break;
-    case "dump_db_mand":
-        dumpDBMand(cli);
-        break;
-    case "dump_db":
-        dumpDB(cli);
-        break;
-    case "delete_db_mand":
-        deleteDBMand(cli);
-        break;
-    case "extd_search":
-        extdSearch();
-        break;
-    case "t009_search":
-        t009Search();
-        break;
-    case "sync_config":
-        syncConfig();
-        break;
-    case "config_mutation":
-        configMutation();
-        break;
-    case "bundle_product":
-        bundleProduct(cli);
-        break;
-    case "changelog":
-        showChangelog();
-        break;
-    case "azure_sync_config":
-        azureCreateSyncConfig();
-        break;
-    case "azure_sync_push":
-        azurePush();
-        break;
-    case "azure_sync_pull":
-        azurePull();
-        break;
-    case "github_security_advisories":
-        githubSecurityAdvisories();
-        break;
-    case "github_add_deploy_key":
-        addGithubDeploymentKey();
-        break;
-    case "github_list_deploy_keys":
-        listGithubDeploymentKeys();
-        break;
-    default:
-        cli.showHelp()
-        break;
+type CommandDescriptions = Record<string, { desc?: string }>;
+
+async function pickCommandInteractive(): Promise<string | undefined> {
+    const commandDescriptions = commands as CommandDescriptions;
+    const commandKeys = Object.keys(commandDescriptions);
+
+    const response = await prompts({
+        type: 'autocomplete',
+        name: 'command',
+        message: 'Select command',
+        choices: commandKeys.map((command) => ({
+            title: `${command} - ${commandDescriptions[command]?.desc ?? ''}`,
+            value: command,
+        })),
+        suggest: async (input: string, choices: Array<{ title: string; value?: string }>) => {
+            const query = (input ?? '').toLowerCase();
+            if (!query) {
+                return choices;
+            }
+            return choices.filter((choice) => choice.title.toLowerCase().includes(query));
+        }
+    }) as { command?: string };
+
+    return response.command;
 }
+
+function runCommand(command: string | undefined): void {
+    switch (command) {
+        case "config_rewrite":
+            rewrite(cli)
+            break;
+        case "import_db":
+            importDB(cli)
+            break;
+        case "t003_rewrite":
+            t003Rewrite(cli)
+            break;
+        case "adb_bridge":
+            adb_bridge()
+            break;
+        case "adb_intent":
+            adb_intent()
+            break;
+        case "set_cli_config":
+            writeCLIConfig()
+            break;
+        case "dump_table_to_csv":
+            dumpTableToCSV()
+            break;
+        case "csv_merge":
+            csvMerge();
+            break;
+        case "graphql_schema_export":
+            graphqlSchemaExport();
+            break;
+        case "dump_db_mand":
+            dumpDBMand(cli);
+            break;
+        case "dump_db":
+            dumpDB(cli);
+            break;
+        case "delete_db_mand":
+            deleteDBMand(cli);
+            break;
+        case "extd_search":
+            extdSearch();
+            break;
+        case "t009_search":
+            t009Search();
+            break;
+        case "sync_config":
+            syncConfig();
+            break;
+        case "config_mutation":
+            configMutation();
+            break;
+        case "bundle_product":
+            bundleProduct(cli);
+            break;
+        case "changelog":
+            showChangelog();
+            break;
+        case "azure_sync_config":
+            azureCreateSyncConfig();
+            break;
+        case "azure_sync_push":
+            azurePush();
+            break;
+        case "azure_sync_pull":
+            azurePull();
+            break;
+        case "github_security_advisories":
+            githubSecurityAdvisories();
+            break;
+        case "github_add_deploy_key":
+            addGithubDeploymentKey();
+            break;
+        case "github_list_deploy_keys":
+            listGithubDeploymentKeys();
+            break;
+        case "help":
+            cli.showHelp();
+            break;
+        default:
+            cli.showHelp()
+            break;
+    }
+}
+
+async function main(): Promise<void> {
+    let command: string | undefined = cli.input[0];
+
+    if (!command) {
+        command = await pickCommandInteractive();
+    }
+
+    runCommand(command);
+}
+
+void main();
 
 
