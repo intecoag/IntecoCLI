@@ -9,19 +9,6 @@ type RepoInfo = {
   description?: string | null;
 };
 
-type OrgPrompt = {
-  organization: string;
-};
-
-type RepoPrompt = {
-  repository: string;
-};
-
-type PublicKeyPrompt = {
-  publicKey: string;
-  keyName: string;
-};
-
 export async function addGithubDeploymentKey() {
   console.log();
 
@@ -61,7 +48,7 @@ export async function addGithubDeploymentKey() {
       console.log();
       process.exit(0);
     }
-  }) as OrgPrompt;
+  })
 
   const { organization } = orgResponse;
 
@@ -105,7 +92,7 @@ export async function addGithubDeploymentKey() {
         console.log();
         process.exit(0);
       }
-    }) as RepoPrompt;
+    })
 
     const { repository } = repoResponse;
 
@@ -139,7 +126,7 @@ export async function addGithubDeploymentKey() {
         console.log();
         process.exit(0);
       }
-    }) as PublicKeyPrompt;
+    })
 
     const { publicKey, keyName } = publicKeyResponse;
 

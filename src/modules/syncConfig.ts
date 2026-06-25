@@ -56,23 +56,23 @@ export default async function syncConfig() {
         {
             type: (prev: SyncDirection) => (prev === 'import' || prev === 'export') ? 'autocomplete' : null,
             name: 'configNameSource',
-            message: (_prev: unknown, values: SyncResponses) => values.direction === 'import'
+            message: (_prev: unknown, values: Record<string, unknown>) => values.direction === 'import'
                 ? 'ConfigIndividual from Repository (Origin)?'
                 : 'ConfigIndividual from Work (Origin)?',
-            choices: (_prev: unknown, values: SyncResponses) => values.direction === 'import'
+            choices: (_prev: unknown, values: Record<string, unknown>) => values.direction === 'import'
                 ? configDirectoriesEclipse
                 : configDirectories
         },
         {
-            type: (_prev: unknown, values: SyncResponses) => (values.direction === 'import' || values.direction === 'export') ? 'autocomplete' : null,
+            type: (_prev: unknown, values: Record<string, unknown>) => (values.direction === 'import' || values.direction === 'export') ? 'autocomplete' : null,
             name: 'configNameTarget',
-            message: (_prev: unknown, values: SyncResponses) => values.direction === 'import'
+            message: (_prev: unknown, values: Record<string, unknown>) => values.direction === 'import'
                 ? 'ConfigIndividual in Work (Destination)?'
                 : 'ConfigIndividual in Repository (Destination)?',
-            choices: (_prev: unknown, values: SyncResponses) => values.direction === 'import'
+            choices: (_prev: unknown, values: Record<string, unknown>) => values.direction === 'import'
                 ? configDirectories
                 : configDirectoriesEclipse,
-            suggest: (input: string, choices: Array<{ title: string; value?: string }>) => {
+            suggest: async (input: string, choices: Array<{ title: string; value?: string }>) => {
                 const filtered = choices.filter((choice) =>
                     choice.title.toLowerCase().includes(input.toLowerCase())
                 );
@@ -83,7 +83,7 @@ export default async function syncConfig() {
             }
         },
         {
-            type: (_prev: unknown, values: SyncResponses) => values.direction == 'sync_to_configIndividual' ? 'autocomplete' : null,
+            type: (_prev: unknown, values: Record<string, unknown>) => values.direction == 'sync_to_configIndividual' ? 'autocomplete' : null,
             name: 'configIndividualSelection',
             message: 'ConfigIndividual (Destination)?',
             choices: readdirSync(config.configIndividualPathEclipse, { withFileTypes: true }).filter(e => e.isDirectory())
@@ -104,7 +104,7 @@ export default async function syncConfig() {
             type: 'select',
             name: 'type',
             message: 'Sync Type?',
-            choices: (_prev: unknown, values: SyncResponses) => [
+            choices: (_prev: unknown, values: Record<string, unknown>) => [
                 values.direction == 'sync_to_configIndividual' ? { title: 'CREATE (if not exists)', value: 'CREATE_IF_NOT_EXISTS' } : { title: 'UPDATE', value: 'UPDATE' },
                 { title: 'OVERWRITE', value: 'OVERWRITE' }
             ]

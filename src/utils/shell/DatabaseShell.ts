@@ -4,6 +4,7 @@ import { DB } from "../db/DB.js";
 import fuzzysort from "fuzzysort";
 import CliTable3 from "cli-table3";
 import prompts from "prompts";
+import { type PromptObject } from "prompts";
 import { type TableConfig, type TableSource } from "./DatabaseShellBuilder.js";
 
 export type TableRow = Record<string, unknown> & { table: string };
@@ -113,13 +114,13 @@ export class DatabaseShell {
 
     async editRow(data: TableRow, columns: EditableColumn[], requiredFields: string[], optionalFields: string[]): Promise<TableRow | null> {
         let cancelled = false;
-        const questions = [...requiredFields, ...optionalFields]
+        const questions: PromptObject<string>[] = [...requiredFields, ...optionalFields]
             .filter((f) => Object.hasOwn(data, f))
             .map((f) => ({
-                type: 'text',
+                type: 'text' as const,
                 message: columns.find((c) => c.column === f)?.title ?? f,
                 name: f,
-                initial: columns.find((c) => c.column === f)?.default ?? data[f]}));
+                initial: String(columns.find((c) => c.column === f)?.default ?? data[f] ?? "")}));
             
         const responses = await prompts(questions, { onCancel: () => { cancelled = true; return false; } }) as Record<string, unknown>;
 
@@ -136,8 +137,8 @@ export class DatabaseShell {
 
     async selectRow(columns: EditableColumn[], requiredColumns: string[]): Promise<TableRow | null> {
         let cancelled = false;
-        const questions = requiredColumns.map((f) => ({
-                type: 'text',
+        const questions: PromptObject<string>[] = requiredColumns.map((f) => ({
+            type: 'text' as const,
                 message: columns.find((c) => c.column === f)?.title ?? f,
                 name: f,
                 initial: columns.find((c) => c.column === f)?.default

@@ -25,7 +25,7 @@ export default async function importDB(_cli: unknown): Promise<void> {
 
     let success = true;
 
-    const results = await prompts([
+    const results: ImportPrompt = await prompts([
         {
             // Ordnerauswahl von vorhandenen Ordner in configIndividual
             type: 'autocomplete',
@@ -54,7 +54,7 @@ export default async function importDB(_cli: unknown): Promise<void> {
             console.log()
             success = false
         }
-    }) as ImportPrompt
+    })
 
     if (success) {
         console.log()

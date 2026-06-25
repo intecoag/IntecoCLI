@@ -3,16 +3,6 @@ import csv from 'csv-parser';
 import fs from "fs";
 import prompts from "prompts";
 
-type MergePrompt = {
-    output: string;
-    useFilter: boolean;
-    filtertype?: "eq" | "neq";
-    filterfield?: string;
-    filtervalue?: string;
-};
-
-type CsvRow = Record<string, string> & { file?: string };
-
 export default async function csvMerge() {
     console.log()
 
@@ -61,7 +51,7 @@ export default async function csvMerge() {
             console.log()
             success = false
         }
-    }) as MergePrompt
+    })
 
 
     if (success) {
@@ -69,17 +59,17 @@ export default async function csvMerge() {
 
         const files = fs.readdirSync(process.cwd(), { withFileTypes: true }).filter((file) => file.isFile() && file.name.endsWith(".csv") && file.name != promptResults.output);
 
-        let finalResult: CsvRow[] = [];
+        let finalResult: Record<string, string>[] = [];
 
         files.forEach(file => {
-            const results: CsvRow[] = [];
+            const results: Record<string, string>[] = [];
 
             fs.createReadStream(process.cwd() + "/" + file.name)
                 .pipe(csv({ separator: ";", quote: "'" }))
-                .on('data', (data: CsvRow) => results.push(data))
+                .on('data', (data: Record<string, string>) => results.push(data))
                 .on('end', () => {
                     const filteredResults = results.map((row) => {
-                        const newRow: CsvRow = {};
+                        const newRow: Record<string, string> = {};
                         Object.entries(row).forEach((entry) => {
                             newRow[entry[0].replaceAll("'", "").replaceAll("`", "")] = entry[1]
                         })

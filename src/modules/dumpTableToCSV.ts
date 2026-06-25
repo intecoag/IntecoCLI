@@ -7,15 +7,6 @@ import Seven from 'node-7z'
 import sevenBin from '7zip-bin'
 import chalk from "chalk";
 
-type DumpTablePrompt = {
-    table: string;
-};
-
-type ArchiveListData = {
-    file: string;
-};
-
-
 export default async function dumpTableToCSV() {
     console.log()
 
@@ -35,7 +26,7 @@ export default async function dumpTableToCSV() {
             console.log()
             success = false
         }
-    }) as DumpTablePrompt
+    })
 
 
     if (success) {
@@ -80,7 +71,7 @@ async function extractDumpsFromArchive(archive: string): Promise<void> {
         $bin: sevenBin.path7za
     })
 
-    const data = await getPromiseFromEvent<ArchiveListData>(list as { on: (event: string, listener: (data: ArchiveListData) => void) => void }, "data")
+    const data = await getPromiseFromEvent<{ file: string }>(list as { on: (event: string, listener: (data: { file: string }) => void) => void }, "data")
 
     const file = data.file
 

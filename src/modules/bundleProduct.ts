@@ -13,13 +13,6 @@ import { cp } from "fs/promises";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-type BundlePrompt = {
-    folder: string;
-    configIndividual: string;
-    ram: string;
-    folderName: string;
-};
-
 export default async function bundleProduct(_cli: unknown): Promise<void> {
     console.log()
 
@@ -75,7 +68,7 @@ export default async function bundleProduct(_cli: unknown): Promise<void> {
             console.log()
             success = false
         }
-    }) as BundlePrompt
+    })
 
     if (success) {
         console.log()

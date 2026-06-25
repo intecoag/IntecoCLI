@@ -8,13 +8,6 @@ import { Config } from "../utils/config/config.js";
 import { DB } from "../utils/db/DB.js";
 import path from "path";
 
-type RewriteResponses = {
-    dbName: string;
-    configName: string;
-    mnr: number;
-    language: '?' | 'd' | 'f' | 'i';
-};
-
 type PropertiesEditor = {
     set: (key: string, value: string) => void;
     save: () => void;
@@ -68,7 +61,7 @@ async function configRewrite(_cli: unknown): Promise<void> {
             console.log()
             success = false
         }
-    }) as RewriteResponses;
+    });
 
     if (success) {
         // Rewrite jwegas.properties

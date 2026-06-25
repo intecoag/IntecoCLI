@@ -5,11 +5,6 @@ import { DB } from "../utils/db/DB.js";
 import chalk from "chalk";
 import path from "path";
 
-type DeletePrompt = {
-    dbName: string;
-    mnr: number;
-};
-
 type CountRow = {
     "COUNT(*)": number;
 };
@@ -43,7 +38,7 @@ export default async function deleteDBMand(_cli: unknown): Promise<void> {
             console.log()
             success = false
         }
-    }) as DeletePrompt
+    })
 
     if(success){
         console.log()

@@ -7,27 +7,6 @@ import chalk from "chalk";
 import path from "path";
 import { exec, execSync } from "child_process";
 
-type DumpPrompt = {
-    dbName: string;
-    dataOnly: boolean;
-    selectIndividualTables: boolean;
-};
-
-type TablePrompt = {
-    table: string;
-    continue: boolean;
-};
-
-type DumpNamePrompt = {
-    dumpName: string;
-};
-
-type DumpMandPrompt = {
-    dbName: string;
-    mnr: number;
-    dumpName: string;
-};
-
 type CountRow = {
     "COUNT(*)": number;
 };
@@ -72,7 +51,7 @@ export async function dumpDB(_cli: unknown): Promise<void> {
             console.log()
             success = false
         }
-    }) as DumpPrompt
+    })
 
     if (success) {
         let selectedTables: string[] = [];
@@ -90,7 +69,7 @@ export async function dumpDB(_cli: unknown): Promise<void> {
                         name: 'table',
                         message: 'Table?',
                         choices: tables.map(name => { return { title: name } }),
-                        default: ""
+                        initial: ""
                     }, {
                         type: 'toggle',
                         name: 'continue',
@@ -105,7 +84,7 @@ export async function dumpDB(_cli: unknown): Promise<void> {
                         console.log()
                         success = false
                     }
-                }) as TablePrompt
+                })
 
                 selectedTables.push(resultsTable.table)
                 continuePrompt = resultsTable.continue
@@ -128,7 +107,7 @@ export async function dumpDB(_cli: unknown): Promise<void> {
                 console.log()
                 success = false
             }
-        }) as DumpNamePrompt
+        })
 
         if (success) {
             console.log()
@@ -189,7 +168,7 @@ export async function dumpDBMand(_cli: unknown): Promise<void> {
             console.log()
             success = false
         }
-    }) as DumpMandPrompt
+    })
 
     if (success) {
         console.log()

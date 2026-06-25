@@ -3,11 +3,6 @@ import prompts from "prompts";
 import { Config } from "../utils/config/config.js";
 import { DB } from "../utils/db/DB.js";
 
-type T003DbPrompt = {
-    dbName: string;
-    mnr: number;
-};
-
 type UserRow = {
     t003_pw: string;
 };
@@ -43,7 +38,7 @@ export default async function t003Rewrite(_cli: unknown): Promise<void> {
             console.log()
             success = false
         }
-    }) as T003DbPrompt;
+    });
 
     if (success) {
 

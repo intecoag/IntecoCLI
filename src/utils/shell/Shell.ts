@@ -11,7 +11,7 @@ export type ShellCommandHandler = (shell: Shell, input: string) => Promise<boole
 
 type PromptChoice = {
     title: string;
-    value: string;
+    value?: string;
 };
 
 export class Shell {
@@ -63,7 +63,7 @@ export class Shell {
                             title: text.length > 0 ? text : " ",
                             value: text
                         },
-                        ...matches.filter((choice) => choice.value !== text)
+                        ...matches.filter((choice) => (choice.value ?? choice.title) !== text)
                     ];
                 }
             }) as { input?: string };

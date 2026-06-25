@@ -69,10 +69,10 @@ switch (cli.input[0]) {
         t003Rewrite(cli)
         break;
     case "adb_bridge":
-        adb_bridge(cli)
+        adb_bridge()
         break;
     case "adb_intent":
-        adb_intent(cli)
+        adb_intent()
         break;
     case "set_cli_config":
         writeCLIConfig()

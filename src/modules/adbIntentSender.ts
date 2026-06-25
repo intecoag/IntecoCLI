@@ -1,25 +1,13 @@
 ﻿import adb from "adb-ts";
 import chalk from "chalk";
 import prompts from "prompts";
- 
-type AdbDevice = {
-    id: string;
-    model?: string;
-};
 
-type IntentPromptResult = {
-    device: AdbDevice;
-    action: string;
-    data: string;
-    codeId: "s" | "d";
-};
-
-export default async function adb_intent(_cli: unknown): Promise<void> {
+export default async function adb_intent(): Promise<void> {
 
     console.log()
 
     const adbClient = new adb.Client({ host: "127.0.0.1" });
-    const devices = await adbClient.listDevices() as AdbDevice[];
+    const devices = await adbClient.listDevices();
 
     let success = true;
     const result = await prompts([
@@ -72,7 +60,7 @@ export default async function adb_intent(_cli: unknown): Promise<void> {
                 console.log()
                 success = false
             }
-        }) as IntentPromptResult;
+        });
 
     if (success) {
         await adbClient.shell(

@@ -10,7 +10,7 @@ export default async function writeCLIConfig(): Promise<void> {
     const keys = Object.keys(data);
     let success = true;
     
-    const responses = await prompts(keys.map((key) => {
+    const responses: Partial<CLIConfig> = await prompts(keys.map((key) => {
         return {
         // Ordnerauswahl von vorhandenen Ordner in configIndividual
         type: 'text',
@@ -25,7 +25,7 @@ export default async function writeCLIConfig(): Promise<void> {
             console.log()
             success = false
         }
-    }) as Partial<CLIConfig>;
+    });
 
     if(success) {
         await Config.setConfig({ ...data, ...responses })

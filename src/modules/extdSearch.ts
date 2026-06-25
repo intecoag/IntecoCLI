@@ -21,7 +21,7 @@ type ExtdRow = {
     disp_feld_7?: string;
     disp_feld_8?: string;
     disp_feld_9?: string;
-    [key: string]: unknown;
+    [key: string]: unknown; // needed for dynamic access to b_value_1, b_value_2, ..., b_value_9 and b_dtext_1, b_dtext_2, ..., b_dtext_9
 };
 
 // Entry point

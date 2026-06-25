@@ -3,12 +3,6 @@ import chalk from "chalk";
 import { buildClientSchema, getIntrospectionQuery, printSchema } from "graphql"
 import { writeFileSync } from "fs";
 
-type ExportPrompt = {
-    url: string;
-    token: string;
-    file: string;
-};
-
 type IntrospectionResponse = {
     data?: unknown;
     errors?: unknown;
@@ -42,7 +36,7 @@ export default async function qraphqlSchemaExport(): Promise<void> {
             console.log()
             success = false
         }
-    }) as ExportPrompt;
+    })
 
     if(success){
         console.log()

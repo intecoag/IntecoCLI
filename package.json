@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit",
     "start": "node dist/index.js",
     "dev": "tsx src/index.ts",
+    "dev:watch": "tsx watch src/index.ts",
     "prepare": "husky",
     "prepublishOnly": "npm run build"
   },
@@ -30,7 +31,7 @@
     "fuzzysort": "^3.1.0",
     "graphql": "^17.0.1",
     "meow": "^14.1.0",
-    "mysql-await": "^2.1.8",
+    "mysql2": "^3.22.5",
     "n-readlines": "^3.4.0",
     "node-7z": "^3.0.0",
     "ora": "^9.4.0",
@@ -48,9 +49,13 @@
     "README.md"
   ],
   "devDependencies": {
-    "@types/node": "^24.1.0",
     "@commitlint/cli": "^21.0.2",
     "@commitlint/config-conventional": "^21.0.2",
+    "@types/node": "^24.1.0",
+    "@types/node-7z": "^2.1.11",
+    "@types/prompts": "^2.4.9",
+    "@types/properties-parser": "^0.3.3",
+    "@types/update-notifier": "^6.0.8",
     "husky": "^9.1.7",
     "semantic-release": "^25.0.5",
     "tsx": "^4.20.6",

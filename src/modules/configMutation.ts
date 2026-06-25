@@ -8,6 +8,9 @@ import { YAMLMap, YAMLSeq } from "yaml";
 import fg from "fast-glob";
 import path from "path";
 
+type MergeNodeAction = (fromNode: unknown, toNode: unknown) => boolean;
+type FileMergeAction = (compareFrom: string, compareTo: string, dryRun: boolean) => boolean;
+
 export default async function mutateConfig() {
     console.log()
 
@@ -35,7 +38,7 @@ export default async function mutateConfig() {
             type: 'toggle',
             name: 'mergeClients',
             message: 'Include Mand? (Apply changes to 1_, 2_, ...)',
-            active: false
+            initial: false,
         },
         {
             type: 'autocomplete',
@@ -117,22 +120,22 @@ export default async function mutateConfig() {
     }
 }
 
-async function processMergeOverwrite(filesToUpdate, configIndividualPathEclipse, configsToUpdate, mergeClients, dryRun) {
+async function processMergeOverwrite(filesToUpdate: string[], configIndividualPathEclipse: string, configsToUpdate: string[], mergeClients: boolean, dryRun: boolean): Promise<void> {
     await processInEachFile(filesToUpdate, configIndividualPathEclipse,
         configsToUpdate, mergeClients, dryRun, mergeOverwriteNodes);
 }
 
-async function processRemoveMissing(filesToUpdate, configIndividualPathEclipse, configsToUpdate, mergeClients, dryRun) {
+async function processRemoveMissing(filesToUpdate: string[], configIndividualPathEclipse: string, configsToUpdate: string[], mergeClients: boolean, dryRun: boolean): Promise<void> {
     await processInEachFile(filesToUpdate, configIndividualPathEclipse,
         configsToUpdate, mergeClients, dryRun, removeMissingNodes);
 }
 
-async function processAddMissing(filesToUpdate, configIndividualPathEclipse, configsToUpdate, mergeClients, dryRun) {
+async function processAddMissing(filesToUpdate: string[], configIndividualPathEclipse: string, configsToUpdate: string[], mergeClients: boolean, dryRun: boolean): Promise<void> {
     await processInEachFile(filesToUpdate, configIndividualPathEclipse,
         configsToUpdate, mergeClients, dryRun, addMissingNodes);
 }
 
-async function processEachFile(filesToUpdate, configIndividualPathEclipse, configsToUpdate, mergeClients, dryRun, processAction) {
+async function processEachFile(filesToUpdate: string[], configIndividualPathEclipse: string, configsToUpdate: string[], mergeClients: boolean, dryRun: boolean, processAction: FileMergeAction): Promise<void> {
     let updatedFiles = 0;
     const globalConfig = path.join(path.dirname(configIndividualPathEclipse), "config");
     for(const file of filesToUpdate) {
@@ -156,16 +159,16 @@ async function processEachFile(filesToUpdate, configIndividualPathEclipse, confi
 }
 
 // Loop through each file in filesToUpdate and executes processAction
-async function processInEachFile(filesToUpdate, configIndividualPathEclipse, configsToUpdate, mergeClients, dryRun, processAction) {
+async function processInEachFile(filesToUpdate: string[], configIndividualPathEclipse: string, configsToUpdate: string[], mergeClients: boolean, dryRun: boolean, processAction: MergeNodeAction): Promise<void> {
     return await processEachFile(filesToUpdate, configIndividualPathEclipse,
         configsToUpdate, mergeClients, dryRun,
-        (globalConfig, individualConfig, dryRun) => processInFile(globalConfig, individualConfig, dryRun, processAction));
+    (globalConfig: string, individualConfig: string, dryRunFlag: boolean) => processInFile(globalConfig, individualConfig, dryRunFlag, processAction));
 }
 
 // Executes processAction for a yaml config file
-function processInFile(compareFrom, compareTo, dryRun, processAction) {
+function processInFile(compareFrom: string, compareTo: string, dryRun: boolean, processAction: MergeNodeAction): boolean {
     try {
-        if(!FS.existsSync(compareFrom) || !FS.existsSync(compareTo)) return;
+        if(!FS.existsSync(compareFrom) || !FS.existsSync(compareTo)) return false;
         const fromDocument = YAML.parseDocument(FS.readFileSync(compareFrom, "utf-8"));
         const toDocument = YAML.parseDocument(FS.readFileSync(compareTo, "utf-8"));
         
@@ -185,19 +188,20 @@ function processInFile(compareFrom, compareTo, dryRun, processAction) {
         }
         return hasChanges;
     }
-    catch(error) {
+    catch(error: unknown) {
+        const message = error instanceof Error ? error.message : String(error);
         if(dryRun) {
-            console.log(chalk.red(`[DryRun] Error in file: ${compareFrom} <-> ${compareTo}: ${error.message}`));
+            console.log(chalk.red(`[DryRun] Error in file: ${compareFrom} <-> ${compareTo}: ${message}`));
         }
         else {
-            console.log(chalk.red(`Could not update file ${compareFrom} <-> ${compareTo}: ${error.message}`));
+            console.log(chalk.red(`Could not update file ${compareFrom} <-> ${compareTo}: ${message}`));
         }
         return false;
     }
 }
 
 // Returns related configs for a base config file (config.yaml, 1_config.yaml, 2_config.yaml, ...)
-async function getRelatedConfigs(file, withClients) {
+async function getRelatedConfigs(file: string, withClients: boolean): Promise<string[]> {
     const dir = path.dirname(file);
     const ext = path.extname(file);
     const name = path.basename(file, ext);
@@ -351,13 +355,17 @@ function mergeOverwriteNodes(fromNode: any, toNode: any): boolean {
 }
 
 
-function nodeToJs(node) {
-    return node && typeof node.toJSON === "function"
-        ? node.toJSON()
-        : node;
+function nodeToJs(node: unknown): unknown {
+    if (node && typeof node === "object") {
+        const withToJson = node as { toJSON?: () => unknown };
+        if (typeof withToJson.toJSON === "function") {
+            return withToJson.toJSON();
+        }
+    }
+    return node;
 }
 
-function deepEqual(a, b) {
+function deepEqual(a: unknown, b: unknown): boolean {
     return JSON.stringify(a) === JSON.stringify(b);
 }
 

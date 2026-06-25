@@ -86,7 +86,7 @@ export async function azureCreateSyncConfig() {
         } catch (error) {
             console.log();
             console.log(chalk.red("Failed to read existing .az-sync file."));
-            console.log(error?.message ?? error);
+            console.log(getErrorMessage(error));
             console.log();
         }
     }
@@ -128,7 +128,7 @@ export async function azureCreateSyncConfig() {
         } catch (error) {
             console.log();
             console.log(chalk.yellow("Could not load containers. Falling back to manual input."));
-            console.log(error?.message ?? error);
+            console.log(getErrorMessage(error));
             console.log();
             containerChoices = [];
         }
@@ -161,7 +161,7 @@ export async function azureCreateSyncConfig() {
         return;
     }
 
-    const includes = (responses.includes ?? "")
+    const includes = (responses.includes as string ?? "")
         .split(",")
         .map(value => value.trim())
         .filter(Boolean);
@@ -312,7 +312,7 @@ function loadSyncConfig(configPath: string): SyncConfig | null {
     } catch (error) {
         console.log();
         console.log(chalk.red(`Failed to read ${configPath}.`));
-        console.log(error?.message ?? error);
+        console.log(getErrorMessage(error));
         console.log();
         return null;
     }
