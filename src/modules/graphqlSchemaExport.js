@@ -1,6 +1,6 @@
 import prompts from "prompts";
 import chalk from "chalk";
-import graphql from "graphql"
+import { buildClientSchema, getIntrospectionQuery, printSchema } from "graphql"
 import { writeFileSync, readFileSync, readdirSync, writeFile, unlinkSync, mkdirSync, renameSync, rmSync } from "fs";
 
 export default async function qraphqlSchemaExport(){
@@ -44,13 +44,13 @@ export default async function qraphqlSchemaExport(){
                     "Accept": "application/json",
                     "Authorization": "Bearer "+responses.token
                 },
-                body: JSON.stringify({query: graphql.getIntrospectionQuery()})
+                body: JSON.stringify({query: getIntrospectionQuery()})
             }).then(res => res.json())
 
-            const schema = graphql.buildClientSchema(data)
+            const schema = buildClientSchema(data)
             
 
-            writeFileSync(responses.file, graphql.printSchema(schema))
+            writeFileSync(responses.file, printSchema(schema))
             console.log(chalk.green("Schema loaded: "+responses.file))
             console.log();
         }catch(e){
