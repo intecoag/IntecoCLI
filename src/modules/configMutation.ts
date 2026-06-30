@@ -222,7 +222,7 @@ async function getRelatedConfigs(file: string, withClients: boolean): Promise<st
 }
 
 // only_create
-function addMissingNodes(fromNode: any, toNode: any): boolean {
+export function addMissingNodes(fromNode: any, toNode: any): boolean {
     let hasChanges = false;
 
     if (!fromNode || !toNode) return false;
@@ -268,7 +268,7 @@ function addMissingNodes(fromNode: any, toNode: any): boolean {
 }
 
 // remove_missing
-function removeMissingNodes(fromNode: any, toNode: any): boolean {
+export function removeMissingNodes(fromNode: any, toNode: any): boolean {
     let hasChanges = false;
 
     if (!fromNode || !toNode) return false;
@@ -315,7 +315,7 @@ function removeMissingNodes(fromNode: any, toNode: any): boolean {
 }
 
 // create_update_overwrite
-function mergeOverwriteNodes(fromNode: any, toNode: any): boolean {
+export function mergeOverwriteNodes(fromNode: any, toNode: any): boolean {
     let hasChanges = false;
 
     if (!fromNode || !toNode) return false;

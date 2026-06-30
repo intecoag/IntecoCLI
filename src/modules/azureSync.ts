@@ -291,7 +291,7 @@ async function walkSyncTree(currentDir: string, activeConfig: SyncConfig | null,
     }
 }
 
-function loadSyncConfig(configPath: string): SyncConfig | null {
+export function loadSyncConfig(configPath: string): SyncConfig | null {
     try {
         const rawConfig = fs.readFileSync(configPath, "utf-8");
         const parsedConfig = YAML.parse(rawConfig) ?? {};
@@ -318,7 +318,7 @@ function loadSyncConfig(configPath: string): SyncConfig | null {
     }
 }
 
-function matchesGlob(relativePath: string, globList: string[]): boolean {
+export function matchesGlob(relativePath: string, globList: string[]): boolean {
     if (!Array.isArray(globList) || globList.length === 0) {
         return false;
     }
@@ -339,7 +339,7 @@ function matchesGlob(relativePath: string, globList: string[]): boolean {
     return false;
 }
 
-function globToRegExp(pattern: string): RegExp {
+export function globToRegExp(pattern: string): RegExp {
     const normalizedPattern = pattern.split(path.sep).join("/").trim();
     let regexBody = "";
     let index = 0;
@@ -594,7 +594,7 @@ async function buildPullOperations(syncState: Map<string, SyncStateEntry>, azure
     return operations;
 }
 
-function validateConfig(config: SyncConfig): boolean {
+export function validateConfig(config: SyncConfig): boolean {
     if (!config.storageAccount || !config.container) {
         console.log(chalk.yellow(`Skipping config at ${config.configPath} (missing storage account or container).`));
         return false;
@@ -619,7 +619,7 @@ async function listRemoteBlobNames(containerClient: any, includes: string[]): Pr
     return remoteBlobs;
 }
 
-function formatBytes(bytes: number): string {
+export function formatBytes(bytes: number): string {
     if (!bytes || bytes <= 0) {
         return "0 B";
     }

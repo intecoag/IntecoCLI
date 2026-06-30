@@ -131,21 +131,8 @@ async function createCSVDump(file: string, table: string): Promise<void> {
     spinner.text = 'Writing file (' + file +")"
     spinner.render()
 
-    const headers: string[] = []
-    let matchHeader = new RegExp(/`(.*?)`/g);
-    let found: RegExpExecArray | null;
-    while ((found = matchHeader.exec(headerData))) {
-        if (found[0] != "`" + table + "`") {
-            headers.push(found[0]);
-        }
-
-    };
-
-    const records: string[] = [];
-    const reBrackets = /\((.*?)\)/g;
-    while ((found = reBrackets.exec(data))) {
-        records.push(found[1]);
-    };
+    const headers = parseHeadersFromCreateStatement(headerData, table);
+    const records = parseInsertRecords(data);
 
     let recordsString = records.join("\n").replaceAll(",", ";");
     let headersString = headers.join(";")
@@ -155,5 +142,31 @@ async function createCSVDump(file: string, table: string): Promise<void> {
     }
     fs.writeFileSync(process.cwd() + path.sep + "csv" + path.sep + file.split(".")[0] + ".csv", headersString + "\n" + recordsString)
     spinner.succeed("CSV created: "+file.split(".")[0] + ".csv")
+}
+
+export function parseHeadersFromCreateStatement(headerData: string, table: string): string[] {
+    const headers: string[] = [];
+    const matchHeader = /`(.*?)`/g;
+    let found: RegExpExecArray | null;
+
+    while ((found = matchHeader.exec(headerData))) {
+        if (found[0] !== `\`${table}\``) {
+            headers.push(found[0]);
+        }
+    }
+
+    return headers;
+}
+
+export function parseInsertRecords(data: string): string[] {
+    const records: string[] = [];
+    const reBrackets = /\((.*?)\)/g;
+    let found: RegExpExecArray | null;
+
+    while ((found = reBrackets.exec(data))) {
+        records.push(found[1]);
+    }
+
+    return records;
 }
 
