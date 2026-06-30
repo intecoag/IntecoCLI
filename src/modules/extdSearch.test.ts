@@ -76,7 +76,7 @@ describe("extdSearch", () => {
         expect(shellMocks.withTables).toHaveBeenNthCalledWith(2, "EXTD", ["extd"]);
         expect(shellMocks.withTables).toHaveBeenNthCalledWith(3, "EXTI", ["exti"]);
         expect(shellMocks.build).toHaveBeenCalledTimes(1);
-        expect(shellMocks.run).toHaveBeenCalledTimes(2);
+        expect(shellMocks.run).toHaveBeenCalledTimes(1);
     });
 
     it("formats field info values through mapping helpers", async () => {
