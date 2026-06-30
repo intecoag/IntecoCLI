@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   test-and-coverage:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     env:
       COVERAGE_MIN_LINES: "50"
       COVERAGE_MIN_STATEMENTS: "50"
