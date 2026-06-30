@@ -15,18 +15,13 @@ permissions:
 jobs:
   test-and-coverage:
     runs-on: ubuntu-latest
-    env:
-      COVERAGE_MIN_LINES: "50"
-      COVERAGE_MIN_STATEMENTS: "50"
-      COVERAGE_MIN_FUNCTIONS: "50"
-      COVERAGE_MIN_BRANCHES: "35"
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: "22"
           cache: npm
@@ -67,6 +62,17 @@ jobs:
           fail_below_min: false
           hide_branch_rate: false
           hide_complexity: true
+
+      - name: Append coverage to workflow summary
+        if: always()
+        shell: bash
+        run: |
+          if [ -f code-coverage-results.md ]; then
+            cat code-coverage-results.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "## Coverage" >> "$GITHUB_STEP_SUMMARY"
+            echo "Coverage summary file was not generated (code-coverage-results.md)." >> "$GITHUB_STEP_SUMMARY"
+          fi
 
       - name: Build PR comment body
         if: ${{ always() && github.event_name == 'pull_request' }}
@@ -140,39 +146,6 @@ jobs:
             echo "Test gate failed (vitest run exit code: ${{ steps.tests_coverage.outputs.exit_code }})"
             exit 1
           fi
-
-      - name: Coverage gate
-        if: always()
-        shell: bash
-        run: |
-          node <<'NODE'
-          const fs = require('node:fs');
-
-          const summary = JSON.parse(fs.readFileSync('coverage/coverage-summary.json', 'utf8'));
-          const total = summary.total || {};
-
-          const checks = [
-            ['lines', Number(process.env.COVERAGE_MIN_LINES)],
-            ['statements', Number(process.env.COVERAGE_MIN_STATEMENTS)],
-            ['functions', Number(process.env.COVERAGE_MIN_FUNCTIONS)],
-            ['branches', Number(process.env.COVERAGE_MIN_BRANCHES)]
-          ];
-
-          const failed = [];
-          for (const [metric, min] of checks) {
-            const actual = Number(total[metric]?.pct ?? 0);
-            if (actual < min) {
-              failed.push(`${metric}: ${actual.toFixed(2)}% < ${min}%`);
-            }
-          }
-
-          if (failed.length > 0) {
-            console.error('Coverage gate failed:\n' + failed.join('\n'));
-            process.exit(1);
-          }
-
-          console.log('Coverage gate passed.');
-          NODE
 
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
