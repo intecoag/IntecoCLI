@@ -10,6 +10,7 @@ on:
 permissions:
   contents: read
   pull-requests: write
+  checks: write
 
 jobs:
   test-and-coverage:
@@ -45,7 +46,7 @@ jobs:
 
       - name: Publish JUnit test report
         if: always()
-        uses: mikepenz/action-junit-report@v5
+        uses: mikepenz/action-junit-report@v6
         with:
           report_paths: vitest-junit.xml
           check_name: Unit Test Report
