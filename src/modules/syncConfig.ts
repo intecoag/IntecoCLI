@@ -316,7 +316,7 @@ function processMultiple(responses: SyncResponses, dryRun: boolean, sourcePaths:
     }
 }
 
-function countAndDeleteDir(dirPath: string, dryRun = false, filenameBlacklist: string[] = []): number {
+export function countAndDeleteDir(dirPath: string, dryRun = false, filenameBlacklist: string[] = []): number {
     let deletedCount = 0;
 
     if (existsSync(dirPath)) {
@@ -362,7 +362,7 @@ function countAndDeleteDir(dirPath: string, dryRun = false, filenameBlacklist: s
     return deletedCount;
 }
 
-function findConfigDirNamedConfigIn(parentPath: string): string {
+export function findConfigDirNamedConfigIn(parentPath: string): string {
     if (!parentPath || typeof parentPath !== 'string') {
         throw new Error('Invalid or undefined parent path');
     }
