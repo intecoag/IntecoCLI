@@ -1,0 +1,197 @@
+name: CI Tests
+
+on:
+  push:
+    branches:
+      - main
+      - beta
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  test-and-coverage:
+    runs-on: self-hosted
+    env:
+      COVERAGE_MIN_LINES: "50"
+      COVERAGE_MIN_STATEMENTS: "50"
+      COVERAGE_MIN_FUNCTIONS: "50"
+      COVERAGE_MIN_BRANCHES: "35"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm clean-install
+
+      - name: Run tests with coverage (JSON + console)
+        id: tests_coverage
+        shell: bash
+        run: |
+          set +e
+          npx vitest run --coverage --reporter=default --reporter=json --outputFile=vitest-results.json
+          code=$?
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Add test and coverage summary
+        if: always()
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+
+          const summaryPath = process.env.GITHUB_STEP_SUMMARY;
+
+          function readJson(path, fallback = {}) {
+            try {
+              return JSON.parse(fs.readFileSync(path, 'utf8'));
+            } catch {
+              return fallback;
+            }
+          }
+
+          const testJson = readJson('vitest-results.json', null);
+          const coverageJson = readJson('coverage/coverage-summary.json', null);
+          const runExit = Number(process.env.RUN_EXIT ?? 1);
+
+          let testTotal = 0;
+          let testPassed = 0;
+          let testFailed = 0;
+          let testSkipped = 0;
+
+          if (testJson) {
+            testTotal = Number(testJson.numTotalTests ?? 0);
+            testPassed = Number(testJson.numPassedTests ?? 0);
+            testFailed = Number(testJson.numFailedTests ?? 0);
+            testSkipped = Number(testJson.numPendingTests ?? 0) + Number(testJson.numTodoTests ?? 0);
+          }
+
+          let lines = 0;
+          let statements = 0;
+          let functions = 0;
+          let branches = 0;
+
+          if (coverageJson && coverageJson.total) {
+            lines = Number(coverageJson.total.lines?.pct ?? 0);
+            statements = Number(coverageJson.total.statements?.pct ?? 0);
+            functions = Number(coverageJson.total.functions?.pct ?? 0);
+            branches = Number(coverageJson.total.branches?.pct ?? 0);
+          }
+
+          const md = [
+            '## Test Results',
+            '',
+            `- Test+Coverage command status: ${runExit === 0 ? 'passed' : 'failed'}`,
+            '',
+            '| Metric | Value |',
+            '|---|---:|',
+            `| Total | ${testTotal} |`,
+            `| Passed | ${testPassed} |`,
+            `| Failed | ${testFailed} |`,
+            `| Skipped/Todo | ${testSkipped} |`,
+            '',
+            '## Coverage Results',
+            '',
+            '| Metric | Coverage | Gate |',
+            '|---|---:|---:|',
+            `| Lines | ${lines.toFixed(2)}% | ${process.env.COVERAGE_MIN_LINES}% |`,
+            `| Statements | ${statements.toFixed(2)}% | ${process.env.COVERAGE_MIN_STATEMENTS}% |`,
+            `| Functions | ${functions.toFixed(2)}% | ${process.env.COVERAGE_MIN_FUNCTIONS}% |`,
+            `| Branches | ${branches.toFixed(2)}% | ${process.env.COVERAGE_MIN_BRANCHES}% |`,
+            ''
+          ].join('\n');
+
+          fs.appendFileSync(summaryPath, md);
+
+          const prComment = [
+            '<!-- ci-tests-sticky-comment -->',
+            '## CI Test and Coverage Report',
+            '',
+            `- Test+Coverage command status: ${runExit === 0 ? 'passed' : 'failed'}`,
+            '',
+            '| Metric | Value |',
+            '|---|---:|',
+            `| Total Tests | ${testTotal} |`,
+            `| Passed | ${testPassed} |`,
+            `| Failed | ${testFailed} |`,
+            `| Skipped/Todo | ${testSkipped} |`,
+            '',
+            '| Coverage Metric | Coverage | Gate |',
+            '|---|---:|---:|',
+            `| Lines | ${lines.toFixed(2)}% | ${process.env.COVERAGE_MIN_LINES}% |`,
+            `| Statements | ${statements.toFixed(2)}% | ${process.env.COVERAGE_MIN_STATEMENTS}% |`,
+            `| Functions | ${functions.toFixed(2)}% | ${process.env.COVERAGE_MIN_FUNCTIONS}% |`,
+            `| Branches | ${branches.toFixed(2)}% | ${process.env.COVERAGE_MIN_BRANCHES}% |`,
+            ''
+          ].join('\n');
+
+          fs.writeFileSync('ci-pr-comment.md', prComment, 'utf8');
+          NODE
+        env:
+          RUN_EXIT: ${{ steps.tests_coverage.outputs.exit_code }}
+
+      - name: Update sticky PR comment
+        if: ${{ always() && github.event_name == 'pull_request' }}
+        uses: marocchino/sticky-pull-request-comment@v3
+        with:
+          header: ci-tests-results
+          path: ci-pr-comment.md
+
+      - name: Test gate
+        if: always()
+        shell: bash
+        run: |
+          if [ "${{ steps.tests_coverage.outputs.exit_code }}" != "0" ]; then
+            echo "Test gate failed (vitest run exit code: ${{ steps.tests_coverage.outputs.exit_code }})"
+            exit 1
+          fi
+
+      - name: Coverage gate
+        if: always()
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+
+          const summary = JSON.parse(fs.readFileSync('coverage/coverage-summary.json', 'utf8'));
+          const total = summary.total || {};
+
+          const checks = [
+            ['lines', Number(process.env.COVERAGE_MIN_LINES)],
+            ['statements', Number(process.env.COVERAGE_MIN_STATEMENTS)],
+            ['functions', Number(process.env.COVERAGE_MIN_FUNCTIONS)],
+            ['branches', Number(process.env.COVERAGE_MIN_BRANCHES)]
+          ];
+
+          const failed = [];
+          for (const [metric, min] of checks) {
+            const actual = Number(total[metric]?.pct ?? 0);
+            if (actual < min) {
+              failed.push(`${metric}: ${actual.toFixed(2)}% < ${min}%`);
+            }
+          }
+
+          if (failed.length > 0) {
+            console.error('Coverage gate failed:\n' + failed.join('\n'));
+            process.exit(1);
+          }
+
+          console.log('Coverage gate passed.');
+          NODE
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          if-no-files-found: error
