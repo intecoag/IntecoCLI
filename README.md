@@ -3,6 +3,7 @@ CLI mit diversen Funktionen fuer die Arbeit in der Inteco und mit dem WEGAS.
 ## Entwicklung
 
 - `npm run typecheck` prueft den TypeScript-Stand.
+- `npm test` fuehrt die Vitest-Test-Suite einmalig aus.
 - `npm run build` erstellt die distributierbaren JavaScript-Dateien in `dist/`.
 - `npm run dev -- <command>` startet den TS-Einstiegspunkt lokal.
 
