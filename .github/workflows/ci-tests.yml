@@ -38,19 +38,41 @@ jobs:
         shell: bash
         run: |
           set +e
-          npx vitest run --coverage --reporter=default --reporter=json --outputFile=vitest-results.json
+          npm run test:ci
           code=$?
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
           exit 0
 
-      - name: Add test and coverage summary
+      - name: Publish JUnit test report
         if: always()
+        uses: mikepenz/action-junit-report@v5
+        with:
+          report_paths: vitest-junit.xml
+          check_name: Unit Test Report
+          detailed_summary: true
+          include_passed: true
+          require_tests: true
+          job_summary: true
+
+      - name: Publish coverage summary
+        if: always()
+        uses: irongut/CodeCoverageSummary@v1.3.0
+        with:
+          filename: coverage/cobertura-coverage.xml
+          badge: true
+          format: markdown
+          output: both
+          indicators: true
+          fail_below_min: false
+          hide_branch_rate: false
+          hide_complexity: true
+
+      - name: Build PR comment body
+        if: ${{ always() && github.event_name == 'pull_request' }}
         shell: bash
         run: |
           node <<'NODE'
           const fs = require('node:fs');
-
-          const summaryPath = process.env.GITHUB_STEP_SUMMARY;
 
           function readJson(path, fallback = {}) {
             try {
@@ -60,60 +82,25 @@ jobs:
             }
           }
 
-          const testJson = readJson('vitest-results.json', null);
-          const coverageJson = readJson('coverage/coverage-summary.json', null);
+          function readText(path, fallback = '') {
+            try {
+              return fs.readFileSync(path, 'utf8');
+            } catch {
+              return fallback;
+            }
+          }
+
           const runExit = Number(process.env.RUN_EXIT ?? 1);
+          const tests = readJson('vitest-results.json', null);
 
-          let testTotal = 0;
-          let testPassed = 0;
-          let testFailed = 0;
-          let testSkipped = 0;
+          const total = Number(tests?.numTotalTests ?? 0);
+          const passed = Number(tests?.numPassedTests ?? 0);
+          const failed = Number(tests?.numFailedTests ?? 0);
+          const skipped = Number(tests?.numPendingTests ?? 0) + Number(tests?.numTodoTests ?? 0);
 
-          if (testJson) {
-            testTotal = Number(testJson.numTotalTests ?? 0);
-            testPassed = Number(testJson.numPassedTests ?? 0);
-            testFailed = Number(testJson.numFailedTests ?? 0);
-            testSkipped = Number(testJson.numPendingTests ?? 0) + Number(testJson.numTodoTests ?? 0);
-          }
+          const coverageMarkdown = readText('code-coverage-results.md', '_Coverage summary could not be generated._');
 
-          let lines = 0;
-          let statements = 0;
-          let functions = 0;
-          let branches = 0;
-
-          if (coverageJson && coverageJson.total) {
-            lines = Number(coverageJson.total.lines?.pct ?? 0);
-            statements = Number(coverageJson.total.statements?.pct ?? 0);
-            functions = Number(coverageJson.total.functions?.pct ?? 0);
-            branches = Number(coverageJson.total.branches?.pct ?? 0);
-          }
-
-          const md = [
-            '## Test Results',
-            '',
-            `- Test+Coverage command status: ${runExit === 0 ? 'passed' : 'failed'}`,
-            '',
-            '| Metric | Value |',
-            '|---|---:|',
-            `| Total | ${testTotal} |`,
-            `| Passed | ${testPassed} |`,
-            `| Failed | ${testFailed} |`,
-            `| Skipped/Todo | ${testSkipped} |`,
-            '',
-            '## Coverage Results',
-            '',
-            '| Metric | Coverage | Gate |',
-            '|---|---:|---:|',
-            `| Lines | ${lines.toFixed(2)}% | ${process.env.COVERAGE_MIN_LINES}% |`,
-            `| Statements | ${statements.toFixed(2)}% | ${process.env.COVERAGE_MIN_STATEMENTS}% |`,
-            `| Functions | ${functions.toFixed(2)}% | ${process.env.COVERAGE_MIN_FUNCTIONS}% |`,
-            `| Branches | ${branches.toFixed(2)}% | ${process.env.COVERAGE_MIN_BRANCHES}% |`,
-            ''
-          ].join('\n');
-
-          fs.appendFileSync(summaryPath, md);
-
-          const prComment = [
+          const comment = [
             '<!-- ci-tests-sticky-comment -->',
             '## CI Test and Coverage Report',
             '',
@@ -121,21 +108,18 @@ jobs:
             '',
             '| Metric | Value |',
             '|---|---:|',
-            `| Total Tests | ${testTotal} |`,
-            `| Passed | ${testPassed} |`,
-            `| Failed | ${testFailed} |`,
-            `| Skipped/Todo | ${testSkipped} |`,
+            `| Total Tests | ${total} |`,
+            `| Passed | ${passed} |`,
+            `| Failed | ${failed} |`,
+            `| Skipped/Todo | ${skipped} |`,
             '',
-            '| Coverage Metric | Coverage | Gate |',
-            '|---|---:|---:|',
-            `| Lines | ${lines.toFixed(2)}% | ${process.env.COVERAGE_MIN_LINES}% |`,
-            `| Statements | ${statements.toFixed(2)}% | ${process.env.COVERAGE_MIN_STATEMENTS}% |`,
-            `| Functions | ${functions.toFixed(2)}% | ${process.env.COVERAGE_MIN_FUNCTIONS}% |`,
-            `| Branches | ${branches.toFixed(2)}% | ${process.env.COVERAGE_MIN_BRANCHES}% |`,
+            '### Coverage',
+            '',
+            coverageMarkdown.trim(),
             ''
           ].join('\n');
 
-          fs.writeFileSync('ci-pr-comment.md', prComment, 'utf8');
+          fs.writeFileSync('ci-pr-comment.md', comment, 'utf8');
           NODE
         env:
           RUN_EXIT: ${{ steps.tests_coverage.outputs.exit_code }}

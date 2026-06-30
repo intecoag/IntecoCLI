@@ -8,7 +8,7 @@
     "clean": "node -e \"import('node:fs').then(fs=>fs.rmSync('dist',{recursive:true,force:true}))\"",
     "build": "npm run clean && tsc && node scripts/copy-assets.mjs",
     "typecheck": "tsc --noEmit",
-    "test:ci": "vitest run --coverage --reporter=default --reporter=json --outputFile=vitest-results.json",
+    "test:ci": "vitest run --coverage --reporter=default --reporter=json --reporter=junit --outputFile.json=vitest-results.json --outputFile.junit=vitest-junit.xml",
     "test": "vitest run --coverage",
     "test:watch": "vitest --coverage",
     "start": "node dist/index.js",
