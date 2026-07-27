@@ -25,13 +25,13 @@
     "7zip-bin": "^5.2.0",
     "adb-ts": "^6.2.0",
     "application-config": "^3.0.0",
-    "chalk": "^5.0.1",
+    "chalk": "^6.0.0",
     "cli-meow-help": "^4.0.0",
     "cli-table3": "^0.6.5",
     "csv-parser": "^3.2.1",
     "fast-glob": "^3.3.3",
     "fuzzysort": "^3.1.0",
-    "graphql": "^17.0.1",
+    "graphql": "^17.0.2",
     "meow": "^14.1.0",
     "mysql2": "^3.22.5",
     "n-readlines": "^3.4.0",
@@ -51,7 +51,7 @@
     "README.md"
   ],
   "devDependencies": {
-    "@commitlint/cli": "^21.1.0",
+    "@commitlint/cli": "^21.2.1",
     "@commitlint/config-conventional": "^21.0.2",
     "@types/node": "^24.1.0",
     "@types/node-7z": "^2.1.11",
@@ -60,7 +60,7 @@
     "@types/update-notifier": "^6.0.8",
     "@vitest/coverage-v8": "^4.1.9",
     "husky": "^9.1.7",
-    "semantic-release": "^25.0.5",
+    "semantic-release": "^25.0.8",
     "tsx": "^4.20.6",
     "typescript": "^5.9.2",
     "vitest": "^4.1.9"
