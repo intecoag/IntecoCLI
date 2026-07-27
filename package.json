@@ -2,11 +2,19 @@
   "name": "@intecoag/inteco-cli",
   "version": "0.5.1",
   "description": "CLI-Tools for Inteco",
-  "main": "src/index.js",
+  "main": "dist/index.js",
   "type": "module",
   "scripts": {
-    "start": "node src/index.js",
-    "prepare": "husky"
+    "clean": "node -e \"import('node:fs').then(fs=>fs.rmSync('dist',{recursive:true,force:true}))\"",
+    "build": "npm run clean && tsc && node scripts/copy-assets.mjs",
+    "typecheck": "tsc --noEmit",
+    "test:ci": "vitest run --coverage --reporter=default --reporter=json --reporter=junit --outputFile.json=vitest-results.json --outputFile.junit=vitest-junit.xml",
+    "test": "vitest run --coverage",
+    "test:watch": "vitest --coverage",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "prepare": "husky",
+    "prepublishOnly": "npm run build"
   },
   "author": "ah1",
   "license": "ISC",
@@ -25,7 +33,7 @@
     "fuzzysort": "^3.1.0",
     "graphql": "^17.0.2",
     "meow": "^14.1.0",
-    "mysql-await": "^2.1.8",
+    "mysql2": "^3.22.5",
     "n-readlines": "^3.4.0",
     "node-7z": "^3.0.0",
     "ora": "^9.4.1",
@@ -36,17 +44,37 @@
     "yaml": "^2.9.0"
   },
   "bin": {
-    "inteco": "src/index.js"
+    "inteco": "dist/index.js"
   },
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "devDependencies": {
     "@commitlint/cli": "^21.2.1",
     "@commitlint/config-conventional": "^21.0.2",
+    "@types/node": "^24.1.0",
+    "@types/node-7z": "^2.1.11",
+    "@types/prompts": "^2.4.9",
+    "@types/properties-parser": "^0.3.3",
+    "@types/update-notifier": "^6.0.8",
+    "@vitest/coverage-v8": "^4.1.9",
     "husky": "^9.1.7",
-    "semantic-release": "^25.0.8"
+    "semantic-release": "^25.0.8",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.2",
+    "vitest": "^4.1.9"
+  },
+  "engines": {
+    "node": ">=22"
   },
   "release": {
     "branches": [
-      "main"
+      "main",
+      {
+        "name": "beta",
+        "prerelease": true
+      }
     ]
   }
 }

@@ -70,5 +70,8 @@
     },
     "github_list_deploy_keys": {
         "desc": "Lists all deployment keys across all repositories in a GitHub organization with their last used dates (requires GitHub CLI or GITHUB_TOKEN)"
+    },
+    "help": {
+        "desc": "Shows help and available commands"
     }
 }

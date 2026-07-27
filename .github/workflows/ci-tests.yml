@@ -1,0 +1,154 @@
+name: CI Tests
+
+on:
+  push:
+    branches:
+      - main
+      - beta
+  pull_request:
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+
+jobs:
+  test-and-coverage:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm clean-install
+
+      - name: Run tests with coverage (JSON + console)
+        id: tests_coverage
+        shell: bash
+        run: |
+          set +e
+          npm run test:ci
+          code=$?
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Publish JUnit test report
+        if: always()
+        uses: mikepenz/action-junit-report@v6
+        with:
+          report_paths: vitest-junit.xml
+          check_name: Unit Test Report
+          require_tests: true
+          job_summary: true
+          simplified_summary: true
+
+      - name: Publish coverage summary
+        if: always()
+        uses: irongut/CodeCoverageSummary@v1.3.0
+        with:
+          filename: coverage/cobertura-coverage.xml
+          badge: true
+          format: markdown
+          output: both
+          indicators: true
+          fail_below_min: false
+          hide_branch_rate: false
+          hide_complexity: true
+
+      - name: Append coverage to workflow summary
+        if: always()
+        shell: bash
+        run: |
+          if [ -f code-coverage-results.md ]; then
+            cat code-coverage-results.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "## Coverage" >> "$GITHUB_STEP_SUMMARY"
+            echo "Coverage summary file was not generated (code-coverage-results.md)." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Build PR comment body
+        if: ${{ always() && github.event_name == 'pull_request' }}
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+
+          function readJson(path, fallback = {}) {
+            try {
+              return JSON.parse(fs.readFileSync(path, 'utf8'));
+            } catch {
+              return fallback;
+            }
+          }
+
+          function readText(path, fallback = '') {
+            try {
+              return fs.readFileSync(path, 'utf8');
+            } catch {
+              return fallback;
+            }
+          }
+
+          const runExit = Number(process.env.RUN_EXIT ?? 1);
+          const tests = readJson('vitest-results.json', null);
+
+          const total = Number(tests?.numTotalTests ?? 0);
+          const passed = Number(tests?.numPassedTests ?? 0);
+          const failed = Number(tests?.numFailedTests ?? 0);
+          const skipped = Number(tests?.numPendingTests ?? 0) + Number(tests?.numTodoTests ?? 0);
+
+          const coverageMarkdown = readText('code-coverage-results.md', '_Coverage summary could not be generated._');
+
+          const comment = [
+            '<!-- ci-tests-sticky-comment -->',
+            '## CI Test and Coverage Report',
+            '',
+            `- Test+Coverage command status: ${runExit === 0 ? 'passed' : 'failed'}`,
+            '',
+            '| Metric | Value |',
+            '|---|---:|',
+            `| Total Tests | ${total} |`,
+            `| Passed | ${passed} |`,
+            `| Failed | ${failed} |`,
+            `| Skipped/Todo | ${skipped} |`,
+            '',
+            '### Coverage',
+            '',
+            coverageMarkdown.trim(),
+            ''
+          ].join('\n');
+
+          fs.writeFileSync('ci-pr-comment.md', comment, 'utf8');
+          NODE
+        env:
+          RUN_EXIT: ${{ steps.tests_coverage.outputs.exit_code }}
+
+      - name: Update sticky PR comment
+        if: ${{ always() && github.event_name == 'pull_request' }}
+        uses: marocchino/sticky-pull-request-comment@v3
+        with:
+          header: ci-tests-results
+          path: ci-pr-comment.md
+
+      - name: Test gate
+        if: always()
+        shell: bash
+        run: |
+          if [ "${{ steps.tests_coverage.outputs.exit_code }}" != "0" ]; then
+            echo "Test gate failed (vitest run exit code: ${{ steps.tests_coverage.outputs.exit_code }})"
+            exit 1
+          fi
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          if-no-files-found: error
