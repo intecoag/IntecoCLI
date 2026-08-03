@@ -33,7 +33,7 @@
     "fuzzysort": "^3.1.0",
     "graphql": "^17.0.2",
     "meow": "^14.1.0",
-    "mysql2": "^3.22.5",
+    "mysql2": "^3.23.2",
     "n-readlines": "^3.4.0",
     "node-7z": "^3.0.0",
     "ora": "^9.4.1",
@@ -53,7 +53,7 @@
   "devDependencies": {
     "@commitlint/cli": "^21.2.1",
     "@commitlint/config-conventional": "^21.0.2",
-    "@types/node": "^24.1.0",
+    "@types/node": "^26.1.2",
     "@types/node-7z": "^2.1.11",
     "@types/prompts": "^2.4.9",
     "@types/properties-parser": "^0.3.3",
@@ -62,7 +62,7 @@
     "husky": "^9.1.7",
     "semantic-release": "^25.0.8",
     "tsx": "^4.20.6",
-    "typescript": "^5.9.2",
+    "typescript": "^7.0.2",
     "vitest": "^4.1.9"
   },
   "engines": {
