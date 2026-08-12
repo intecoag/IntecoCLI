@@ -25,25 +25,94 @@ describe("t003Rewrite", () => {
         mocks.getDatabaseNames.mockResolvedValue([{ name: "db1" }]);
     });
 
-    it("updates selected user", async () => {
+    it("updates selected user for selected mandant", async () => {
         mocks.prompts
-            .mockResolvedValueOnce({ dbName: "db1", mnr: 1 })
+            .mockResolvedValueOnce({ dbName: "db1" })
+            .mockResolvedValueOnce({ mnr: "1" })
             .mockResolvedValueOnce({ username: "old_user" });
+
         mocks.executeQueryOnDB
-            .mockResolvedValueOnce([{ t003_pw: "old_user" }])
+            .mockResolvedValueOnce([
+                {
+                    mand_mandant: "1",
+                    mand_name: "Mandant 1"
+                }
+            ])
+            .mockResolvedValueOnce([
+                {
+                    t003_pw: "old_user"
+                }
+            ])
             .mockResolvedValueOnce([]);
 
         await t003Rewrite({});
 
-        expect(mocks.executeQueryOnDB).toHaveBeenCalledWith("SELECT t003_pw FROM t003 WHERE t003_mnr = 1", "db1");
-        expect(mocks.executeQueryOnDB).toHaveBeenCalledWith(
+        expect(mocks.executeQueryOnDB).toHaveBeenNthCalledWith(
+            1,
+            "SELECT mand_mandant, mand_name FROM mand ORDER BY mand_mandant",
+            "db1"
+        );
+
+        expect(mocks.executeQueryOnDB).toHaveBeenNthCalledWith(
+            2,
+            "SELECT t003_pw FROM t003 WHERE t003_mnr = 1",
+            "db1"
+        );
+
+        expect(mocks.executeQueryOnDB).toHaveBeenNthCalledWith(
+            3,
             "UPDATE t003 SET t003_pw = 'NEW_USER' WHERE t003_mnr = 1 AND t003_pw = 'old_user'",
             "db1"
         );
     });
 
-    it("stops after first prompt cancel", async () => {
-        mocks.prompts.mockImplementationOnce(async (_q, options) => {
+    it("updates selected user for all mandants", async () => {
+        mocks.prompts
+            .mockResolvedValueOnce({ dbName: "db1" })
+            .mockResolvedValueOnce({ mnr: "ALL" })
+            .mockResolvedValueOnce({ username: "old_user" });
+
+        mocks.executeQueryOnDB
+            .mockResolvedValueOnce([
+                {
+                    mand_mandant: "1",
+                    mand_name: "Mandant 1"
+                },
+                {
+                    mand_mandant: "2",
+                    mand_name: "Mandant 2"
+                }
+            ])
+            .mockResolvedValueOnce([
+                {
+                    t003_pw: "old_user"
+                }
+            ])
+            .mockResolvedValueOnce([]);
+
+        await t003Rewrite({});
+
+        expect(mocks.executeQueryOnDB).toHaveBeenNthCalledWith(
+            1,
+            "SELECT mand_mandant, mand_name FROM mand ORDER BY mand_mandant",
+            "db1"
+        );
+
+        expect(mocks.executeQueryOnDB).toHaveBeenNthCalledWith(
+            2,
+            "SELECT DISTINCT t003_pw FROM t003",
+            "db1"
+        );
+
+        expect(mocks.executeQueryOnDB).toHaveBeenNthCalledWith(
+            3,
+            "UPDATE t003 SET t003_pw = 'NEW_USER' WHERE t003_pw = 'old_user'",
+            "db1"
+        );
+    });
+
+    it("stops after database prompt cancel", async () => {
+        mocks.prompts.mockImplementationOnce(async (_question, options) => {
             options?.onCancel?.();
             return {};
         });
@@ -51,5 +120,62 @@ describe("t003Rewrite", () => {
         await t003Rewrite({});
 
         expect(mocks.executeQueryOnDB).not.toHaveBeenCalled();
+    });
+
+    it("stops after mandant prompt cancel", async () => {
+        mocks.prompts
+            .mockResolvedValueOnce({ dbName: "db1" })
+            .mockImplementationOnce(async (_question, options) => {
+                options?.onCancel?.();
+                return {};
+            });
+
+        mocks.executeQueryOnDB.mockResolvedValueOnce([
+            {
+                mand_mandant: "1",
+                mand_name: "Mandant 1"
+            }
+        ]);
+
+        await t003Rewrite({});
+
+        expect(mocks.executeQueryOnDB).toHaveBeenCalledTimes(1);
+
+        expect(mocks.executeQueryOnDB).toHaveBeenCalledWith(
+            "SELECT mand_mandant, mand_name FROM mand ORDER BY mand_mandant",
+            "db1"
+        );
+    });
+
+    it("does not update after username prompt cancel", async () => {
+        mocks.prompts
+            .mockResolvedValueOnce({ dbName: "db1" })
+            .mockResolvedValueOnce({ mnr: "1" })
+            .mockImplementationOnce(async (_question, options) => {
+                options?.onCancel?.();
+                return {};
+            });
+
+        mocks.executeQueryOnDB
+            .mockResolvedValueOnce([
+                {
+                    mand_mandant: "1",
+                    mand_name: "Mandant 1"
+                }
+            ])
+            .mockResolvedValueOnce([
+                {
+                    t003_pw: "old_user"
+                }
+            ]);
+
+        await t003Rewrite({});
+
+        expect(mocks.executeQueryOnDB).toHaveBeenCalledTimes(2);
+
+        expect(mocks.executeQueryOnDB).not.toHaveBeenCalledWith(
+            expect.stringContaining("UPDATE t003"),
+            expect.anything()
+        );
     });
 });
