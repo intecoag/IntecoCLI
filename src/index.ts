@@ -25,6 +25,7 @@ import bundleProduct from './modules/bundleProduct.js';
 import { azureCreateSyncConfig, azurePush, azurePull } from './modules/azureSync.js';
 import githubSecurityAdvisories from './modules/githubSecurityAdvisories.js';
 import listGithubDeploymentKeys from './modules/githubDeploymentKeysList.js';
+import blockDomain from './modules/blockDomain.js';
 
 import updateNotifier from 'update-notifier';
 import { addGithubDeploymentKey } from './modules/githubDeploymentKey.js';
@@ -158,6 +159,9 @@ function runCommand(command: string | undefined): void {
             break;
         case "github_list_deploy_keys":
             listGithubDeploymentKeys();
+            break;
+        case "block_domain":
+            blockDomain(cli);
             break;
         case "help":
             cli.showHelp();
