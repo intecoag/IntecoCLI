@@ -47,7 +47,7 @@ export default async function blockDomain(_cli: unknown): Promise<void> {
 
         hostFileLines.push(`0.0.0.0 ${domainResponse.domain}`);
         if(await writeHostFile(hostFileLines.join('\n'))) {
-            console.log(chalk.green("Domain blocked. Please restart your browser"));
+            console.log(chalk.green("Domain blocked. Please restart your browser and/or jWEGAS."));
         }
         else {
             console.log(chalk.red("Failed to block domain."));
@@ -75,7 +75,7 @@ export default async function blockDomain(_cli: unknown): Promise<void> {
 
         hostFileLines.splice(domainResponse.domain, 1);
         if(await writeHostFile(hostFileLines.join('\n'))) {
-            console.log(chalk.green("Domain unblocked. Please restart your browser"));
+            console.log(chalk.green("Domain unblocked. Please restart your browser and/or jWEGAS."));
         }
         else {
             console.log(chalk.red("Failed to unblock domain."));

@@ -72,7 +72,7 @@
         "desc": "Lists all deployment keys across all repositories in a GitHub organization with their last used dates (requires GitHub CLI or GITHUB_TOKEN)"
     },
     "block_domain": {
-        "desc": "Blocks or unblocks a domain by editing the hosts file"
+        "desc": "Blocks or unblocks a domain by editing the hosts file. Helpful for testing and development purposes with jWEGAS interfaces (requires elevated privileges)."
     },
     "help": {
         "desc": "Shows help and available commands"
