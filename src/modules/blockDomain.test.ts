@@ -97,7 +97,7 @@ describe("blockDomain", () => {
             );
 
             expect(consoleLogSpy).toHaveBeenCalledWith(
-                "Domain blocked. Please restart your browser",
+                "Domain blocked. Please restart your browser and/or jWEGAS.",
             );
         });
 
@@ -119,7 +119,7 @@ describe("blockDomain", () => {
             await blockDomain(undefined);
 
             expect(consoleLogSpy).toHaveBeenCalledWith(
-                "Failed to block domain.",
+                "Failed to block domain. Please restart your browser and/or jWEGAS.",
             );
         });
 
