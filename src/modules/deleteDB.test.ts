@@ -83,8 +83,8 @@ describe("deleteDBMand", () => {
         await deleteDBMand({});
 
         expect(mocks.rmSync).toHaveBeenCalled();
-        expect(mocks.executeQueryOnDB).toHaveBeenCalledWith("DELETE FROM t1 WHERE t1_mnr = '1';", "clientdb");
-        expect(mocks.executeQueryOnDB).toHaveBeenCalledWith("DELETE FROM mand WHERE mand_mandant = '1';", "clientdb");
+        expect(mocks.executeQueryOnDB).toHaveBeenCalledWith("DELETE FROM t1 WHERE t1_mnr = ?;", "clientdb", 1);
+        expect(mocks.executeQueryOnDB).toHaveBeenCalledWith("DELETE FROM mand WHERE mand_mandant = ?;", "clientdb", 1);
         expect(mocks.tableSpinner.succeed).toHaveBeenCalledWith("Data deleted: t1");
         expect(mocks.tableSpinner.info).toHaveBeenCalledWith("Column t2_mnr not found, Skipping table: t2");
         expect(mocks.rootSpinner.succeed).toHaveBeenCalledWith("Mand deleted: 1");

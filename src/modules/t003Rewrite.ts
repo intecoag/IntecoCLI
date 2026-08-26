@@ -67,7 +67,7 @@ export default async function t003Rewrite(_cli: unknown): Promise<void> {
 
     const users = isAll
         ? await DB.executeQueryOnDB("SELECT DISTINCT t003_pw FROM t003", responseDB.dbName) as UserRow[]
-        : await DB.executeQueryOnDB("SELECT t003_pw FROM t003 WHERE t003_mnr = " + responseMand.mnr, responseDB.dbName) as UserRow[];
+        : await DB.executeQueryOnDB("SELECT t003_pw FROM t003 WHERE t003_mnr = ?", responseDB.dbName, responseMand.mnr) as UserRow[];
 
     const responses = await prompts([{
         // Ordnerauswahl von vorhandenen Ordner in configIndividual
@@ -81,10 +81,10 @@ export default async function t003Rewrite(_cli: unknown): Promise<void> {
         console.log()
 
         if(isAll) {
-            await DB.executeQueryOnDB("UPDATE t003 SET t003_pw = '"+config.wegasUsername+"' WHERE t003_pw = '"+responses.username+"'", responseDB.dbName);
+            await DB.executeQueryOnDB("UPDATE t003 SET t003_pw = ? WHERE t003_pw = ?", responseDB.dbName, config.wegasUsername, responses.username);
         }
         else {
-            await DB.executeQueryOnDB("UPDATE t003 SET t003_pw = '"+config.wegasUsername+"' WHERE t003_mnr = "+responseMand.mnr+" AND t003_pw = '"+responses.username+"'", responseDB.dbName);
+            await DB.executeQueryOnDB("UPDATE t003 SET t003_pw = ? WHERE t003_mnr = ? AND t003_pw = ?", responseDB.dbName, config.wegasUsername, responseMand.mnr, responses.username);
         }
 
         console.log(chalk.green("T003 rewritten!"))

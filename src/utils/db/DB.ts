@@ -1,4 +1,4 @@
-﻿import { createConnection, type Connection, type RowDataPacket } from "mysql2/promise";
+﻿import { createConnection, type Connection, type ExecuteValues } from "mysql2/promise";
 import { Config } from "../config/config.js";
 
 
@@ -31,11 +31,11 @@ export class DB {
         }
     }
 
-    private static async runQuery(query: string, db: string | null): Promise<unknown[]> {
+    private static async runQuery(query: string, db: string | null, params: ExecuteValues[] = []): Promise<unknown[]> {
         await this.connect(db);
 
         try {
-            const [results] = await this.getConnection().query(query);
+            const [results] = await this.getConnection().execute(query, params);
 
             return Array.isArray(results) ? (results as unknown[]) : [];
         } finally {
@@ -43,12 +43,12 @@ export class DB {
         }
     }
 
-    static async executeQuery(query: string): Promise<unknown[]> {
-        return await this.runQuery(query, null);
+    static async executeQuery(query: string, ...params: ExecuteValues[]): Promise<unknown[]> {
+        return await this.runQuery(query, null, params);
     }
 
-    static async executeQueryOnDB(query: string, db: string): Promise<unknown[]> {
-        return await this.runQuery(query, db);
+    static async executeQueryOnDB(query: string, db: string, ...params: ExecuteValues[]): Promise<unknown[]> {
+        return await this.runQuery(query, db, params);
     }
 
     static async getDatabaseNames(): Promise<Array<{ name: string }>> {

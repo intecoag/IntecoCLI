@@ -59,14 +59,23 @@ export default async function deleteDBMand(_cli: unknown): Promise<void> {
                 // Check if Mand-Column exists
                 const tableSpinner = ora("Deleting data: "+table).start();
                 const tableCol = table+"_mnr"
-                const columnExists = await DB.executeQueryOnDB("SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE table_schema = '"+results.dbName+"' AND table_name = '"+table+"' AND column_name = '"+tableCol+"';", results.dbName) as CountRow[]
+                const columnExists = await DB.executeQueryOnDB("SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE table_schema = ? AND table_name = ? AND column_name = ?;",
+                    results.dbName,
+                    results.dbName,
+                    table,
+                    tableCol) as CountRow[]
 
                 if(columnExists [0]['COUNT(*)'] != 0){
                     // Check if Mand-Data is present
-                    const dataExists = await DB.executeQueryOnDB("SELECT COUNT(*) FROM "+table+" WHERE "+tableCol+" = '"+results.mnr+"';", results.dbName) as CountRow[];
+                    const dataExists = await DB.executeQueryOnDB("SELECT COUNT(*) FROM "+table+" WHERE "+tableCol+" = ?;",
+                        results.dbName,
+                        results.mnr) as CountRow[];
 
                     if(dataExists[0]['COUNT(*)'] != 0){
-                        await DB.executeQueryOnDB("DELETE FROM "+table+" WHERE "+tableCol+" = '"+results.mnr+"';", results.dbName)
+                        await DB.executeQueryOnDB("DELETE FROM "+table+" WHERE "+tableCol+" = ?;",
+                            results.dbName,
+                            results.mnr
+                        )
                         tableSpinner.succeed("Data deleted: "+table);
                     }else{
                         tableSpinner.info("No data present, Skipping table: "+table)
@@ -77,7 +86,7 @@ export default async function deleteDBMand(_cli: unknown): Promise<void> {
             }
             // Dump mand-table (special field name)
             const tableSpinner = ora("Deleting mand (custom logic)")
-            await DB.executeQueryOnDB("DELETE FROM mand WHERE mand_mandant = '"+results.mnr+"';", results.dbName)
+            await DB.executeQueryOnDB("DELETE FROM mand WHERE mand_mandant = ?;", results.dbName, results.mnr)
             tableSpinner.succeed("Data deleted: mand")
             spinner.succeed("Mand deleted: "+results.mnr);
         }

@@ -89,6 +89,11 @@ describe("DatabaseShell", () => {
         await shell.deleteRow({ table: "t009", mnr: "1", name: "a'b" });
 
         expect(String(mocks.executeQueryOnDB.mock.calls[0]?.[0] ?? "")).toContain("DELETE FROM `t009`");
-        expect(String(mocks.executeQueryOnDB.mock.calls[0]?.[0] ?? "")).toContain("a\\'b");
+        expect(mocks.executeQueryOnDB).toHaveBeenCalledWith(
+            "DELETE FROM `t009` WHERE `t009_mnr` = ? AND `t009_name` = ?",
+            "db1",
+            "1",
+            "a'b"
+        );
     });
 });
