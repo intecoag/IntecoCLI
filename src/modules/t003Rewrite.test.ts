@@ -55,14 +55,18 @@ describe("t003Rewrite", () => {
 
         expect(mocks.executeQueryOnDB).toHaveBeenNthCalledWith(
             2,
-            "SELECT t003_pw FROM t003 WHERE t003_mnr = 1",
-            "db1"
+            "SELECT t003_pw FROM t003 WHERE t003_mnr = ?",
+            "db1",
+            "1"
         );
 
         expect(mocks.executeQueryOnDB).toHaveBeenNthCalledWith(
             3,
-            "UPDATE t003 SET t003_pw = 'NEW_USER' WHERE t003_mnr = 1 AND t003_pw = 'old_user'",
-            "db1"
+            "UPDATE t003 SET t003_pw = ? WHERE t003_mnr = ? AND t003_pw = ?",
+            "db1",
+            "NEW_USER",
+            "1",
+            "old_user"
         );
     });
 
@@ -106,8 +110,10 @@ describe("t003Rewrite", () => {
 
         expect(mocks.executeQueryOnDB).toHaveBeenNthCalledWith(
             3,
-            "UPDATE t003 SET t003_pw = 'NEW_USER' WHERE t003_pw = 'old_user'",
-            "db1"
+            "UPDATE t003 SET t003_pw = ? WHERE t003_pw = ?",
+            "db1",
+            "NEW_USER",
+            "old_user"
         );
     });
 

@@ -189,11 +189,11 @@ export async function dumpDBMand(_cli: unknown): Promise<void> {
                 // Check if Mand-Column exists
                 const tableSpinner = ora("Dumping data: " + table).start();
                 const tableCol = table + "_mnr"
-                const columnExists = await DB.executeQueryOnDB("SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE table_schema = '" + results.dbName + "' AND table_name = '" + table + "' AND column_name = '" + tableCol + "';", results.dbName) as CountRow[]
+                const columnExists = await DB.executeQueryOnDB("SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS WHERE table_schema = ? AND table_name = ? AND column_name = ?;", results.dbName, results.dbName, table, tableCol) as CountRow[]
 
                 if (columnExists[0]['COUNT(*)'] != 0) {
                     // Check if Mand-Data is present
-                    const dataExists = await DB.executeQueryOnDB("SELECT COUNT(*) FROM " + table + " WHERE " + tableCol + " = '" + results.mnr + "';", results.dbName) as CountRow[];
+                    const dataExists = await DB.executeQueryOnDB("SELECT COUNT(*) FROM " + table + " WHERE " + tableCol + " = ?;", results.dbName, results.mnr) as CountRow[];
 
                     if (dataExists[0]['COUNT(*)'] != 0) {
                         // Dump table

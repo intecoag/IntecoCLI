@@ -6,6 +6,7 @@ import CliTable3 from "cli-table3";
 import prompts from "prompts";
 import { type PromptObject } from "prompts";
 import { type TableConfig, type TableSource } from "./DatabaseShellBuilder.js";
+import { ExecuteValues } from "mysql2";
 
 export type TableRow = Record<string, unknown> & { table: string };
 type EditableColumn = { title: string; column: string; default?: string };
@@ -89,26 +90,47 @@ export class DatabaseShell {
 
     async deleteRow(row: TableRow): Promise<void> {
         const table = row.table;
-        const where = Object.entries(row).filter(([k]) => k !== "table").map(([k, v]) => `\`${table}_${k}\`='${String(v).replaceAll("'", "\\'")}'`).join(' AND ');
+        const entries = Object.entries(row).filter(([k]) => k !== "table");
+        const where = entries.map(([k]) => `\`${table}_${k}\` = ?`).join(" AND ");
+        const values: ExecuteValues[] = entries.map(([, v]) => v as ExecuteValues);
+
         const sql = `DELETE FROM \`${table}\` WHERE ${where}`;
-        await DB.executeQueryOnDB(sql, this.requireDb());
+
+        await DB.executeQueryOnDB(sql, this.requireDb(), ...values);
         await this.loadData();
     }
 
     async insertRow(row: TableRow): Promise<void> {
         const table = row.table;
         const kvPairs = Object.entries(row).filter(([k]) => k !== "table");
-        const sql = `INSERT INTO \`${table}\` (${kvPairs.map(([k]) => `\`${table}_${k}\``).join(', ')}) VALUES (${kvPairs.map(([, v]) => `'${String(v).replaceAll("'", "\\'")}'`)});`;
-        await DB.executeQueryOnDB(sql, this.requireDb());
+        const columns = kvPairs.map(([k]) => `\`${table}_${k}\``).join(", ");
+        const placeholders = kvPairs.map(() => "?").join(", ");
+        const values: ExecuteValues[] = kvPairs.map(([, v]) => v as ExecuteValues);
+
+        const sql = `
+            INSERT INTO \`${table}\` (${columns})
+            VALUES (${placeholders});
+        `;
+
+        await DB.executeQueryOnDB(sql, this.requireDb(), ...values);
         await this.loadData();
     }
 
     async updateRow(row: TableRow, whereRow: TableRow): Promise<void> {
         const table = whereRow.table;
-        const set = Object.entries(row).filter(([k]) => k !== "table").map(([k, v]) => `\`${table}_${k}\`='${String(v).replaceAll("'", "\\'")}'`).join(', ');
-        const where = Object.entries(whereRow).filter(([k]) => k !== "table").map(([k, v]) => `\`${table}_${k}\`='${String(v).replaceAll("'", "\\'")}'`).join(' AND ');
+        const setEntries = Object.entries(row).filter(([k]) => k !== "table");
+        const whereEntries = Object.entries(whereRow).filter(([k]) => k !== "table");
+        const set = setEntries.map(([k]) => `\`${table}_${k}\` = ?`).join(", ");
+        const where = whereEntries.map(([k]) => `\`${table}_${k}\` = ?`).join(" AND ");
+
+        const values: ExecuteValues[] = [
+            ...setEntries.map(([, v]) => v as ExecuteValues),
+            ...whereEntries.map(([, v]) => v as ExecuteValues)
+        ];
+
         const sql = `UPDATE \`${table}\` SET ${set} WHERE ${where};`;
-        await DB.executeQueryOnDB(sql, this.requireDb());
+
+        await DB.executeQueryOnDB(sql, this.requireDb(), ...values);
         await this.loadData();
     }
 
