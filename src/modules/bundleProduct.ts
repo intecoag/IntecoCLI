@@ -32,7 +32,13 @@ export default async function bundleProduct(_cli: unknown): Promise<void> {
             name: 'folder',
             message: 'Product-Folder?',
             choices: folders,
-            initial: "eclipse"
+            initial: "eclipse",
+            onRender(this: any) {
+                if (this.firstRender) {
+                    this.value = 'eclipse';
+                    this.cursor = this.value.length;
+                }
+            }
         },
         {
             // Ordnerauswahl von vorhandenen Ordner in configIndividual
@@ -59,7 +65,13 @@ export default async function bundleProduct(_cli: unknown): Promise<void> {
             type: 'text',
             name: 'folderName',
             message: 'Product-Name?',
-            initial: "eclipse"
+            initial: "eclipse",
+            onRender(this: any) {
+                if (this.firstRender) {
+                    this.value = 'eclipse';
+                    this.cursor = this.value.length;
+                }
+            }
         },
     ], {
         onCancel: () => {
