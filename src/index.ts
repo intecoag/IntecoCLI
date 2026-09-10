@@ -12,7 +12,7 @@ import writeCLIConfig from './modules/setCLIConfig.js';
 import t003Rewrite from './modules/t003Rewrite.js';
 import graphqlSchemaExport from './modules/graphqlSchemaExport.js';
 import csvMerge from './modules/csvMerger.js';
-import {dumpDBMand, dumpDB } from './modules/dumpDB.js';
+import { dumpDBMand, dumpDB } from './modules/dumpDB.js';
 import deleteDBMand from './modules/deleteDB.js';
 import showChangelog from './modules/changelog.js';
 

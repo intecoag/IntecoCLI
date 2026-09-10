@@ -155,6 +155,20 @@ export async function dumpDBMand(_cli: unknown): Promise<void> {
             initial: '1'
         },
         {
+            type: 'toggle',
+            name: 'rewriteMnr',
+            message: 'Rewrite Mandant number before dumping?',
+            initial: false,
+            active: 'yes',
+            inactive: 'no'
+        },
+        {
+            type: (_prev, values) => values.rewriteMnr ? 'number' : null,
+            name: 'newMnr',
+            message: 'New Mandant number?',
+            initial: '1'
+        },
+        {
             // Ordnerauswahl von vorhandenen Ordner in configIndividual
             type: 'text',
             name: 'dumpName',
@@ -185,6 +199,8 @@ export async function dumpDBMand(_cli: unknown): Promise<void> {
         } else {
             // Remove previous dump
             rmSync("." + path.sep + results.dumpName, { recursive: true, force: true })
+            const dumpMnr = results.rewriteMnr ? results.newMnr : results.mnr;
+
             for (const table of tables) {
                 // Check if Mand-Column exists
                 const tableSpinner = ora("Dumping data: " + table).start();
@@ -196,10 +212,20 @@ export async function dumpDBMand(_cli: unknown): Promise<void> {
                     const dataExists = await DB.executeQueryOnDB("SELECT COUNT(*) FROM " + table + " WHERE " + tableCol + " = ?;", results.dbName, results.mnr) as CountRow[];
 
                     if (dataExists[0]['COUNT(*)'] != 0) {
-                        // Dump table
-                        execSync("mysqldump -u" + config.dbUser + " -p" + config.dbPassword + " -h" + config.dbURL + " --no-create-info --where=\"" + tableCol + " = '" + results.mnr + "'\" " + results.dbName + " " + table + " >> " + results.dumpName);
+                        if (results.rewriteMnr) {
+                            await DB.executeQueryOnDB("UPDATE " + table + " SET " + tableCol + " = ? WHERE " + tableCol + " = ?;", results.dbName, results.newMnr, results.mnr);
+                        }
 
-                        tableSpinner.succeed("Data dumped: " + table);
+                        try {
+                            // Dump table
+                            execSync("mysqldump -u" + config.dbUser + " -p" + config.dbPassword + " -h" + config.dbURL + " --no-create-info --where=\"" + tableCol + " = '" + dumpMnr + "'\" " + results.dbName + " " + table + " >> " + results.dumpName);
+
+                            tableSpinner.succeed("Data dumped: " + table);
+                        } finally {
+                            if (results.rewriteMnr) {
+                                await DB.executeQueryOnDB("UPDATE " + table + " SET " + tableCol + " = ? WHERE " + tableCol + " = ?;", results.dbName, results.mnr, results.newMnr);
+                            }
+                        }
                     } else {
                         tableSpinner.info("No data present, Skipping table: " + table)
                     }
@@ -209,8 +235,18 @@ export async function dumpDBMand(_cli: unknown): Promise<void> {
             }
             // Dump mand-table (special field name)
             const tableSpinner = ora("Dumping mand (custom logic)")
-            execSync("mysqldump -u" + config.dbUser + " -p" + config.dbPassword + " -h" + config.dbURL + " --no-create-info --where=\"mand_mandant = '" + results.mnr + "'\" " + results.dbName + " mand >> " + results.dumpName);
-            tableSpinner.succeed("Data dumped: mand")
+            if (results.rewriteMnr) {
+                await DB.executeQueryOnDB("UPDATE mand SET mand_mandant = ? WHERE mand_mandant = ?;", results.dbName, results.newMnr, results.mnr);
+            }
+
+            try {
+                execSync("mysqldump -u" + config.dbUser + " -p" + config.dbPassword + " -h" + config.dbURL + " --no-create-info --where=\"mand_mandant = '" + dumpMnr + "'\" " + results.dbName + " mand >> " + results.dumpName);
+                tableSpinner.succeed("Data dumped: mand")
+            } finally {
+                if (results.rewriteMnr) {
+                    await DB.executeQueryOnDB("UPDATE mand SET mand_mandant = ? WHERE mand_mandant = ?;", results.dbName, results.mnr, results.newMnr);
+                }
+            }
             spinner.succeed("Dumped DB to " + results.dumpName);
         }
 

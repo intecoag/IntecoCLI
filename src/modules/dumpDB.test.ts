@@ -96,7 +96,7 @@ describe("dumpDBMand", () => {
     });
 
     it("fails when db has no tables", async () => {
-        mocks.prompts.mockResolvedValue({ dbName: "clientdb", mnr: 1, dumpName: "dump.sql" });
+        mocks.prompts.mockResolvedValue({ dbName: "clientdb", mnr: 1, rewriteMnr: false, dumpName: "dump.sql" });
         mocks.executeQueryOnDB.mockResolvedValueOnce([]);
 
         await dumpDBMand({});
@@ -104,8 +104,8 @@ describe("dumpDBMand", () => {
         expect(mocks.spinner.fail).toHaveBeenCalledWith("Database has no tables: clientdb");
     });
 
-    it("dumps matching tables and mand", async () => {
-        mocks.prompts.mockResolvedValue({ dbName: "clientdb", mnr: 1, dumpName: "dump.sql" });
+    it("dumps matching tables and mand without rewriting", async () => {
+        mocks.prompts.mockResolvedValue({ dbName: "clientdb", mnr: 1, rewriteMnr: false, dumpName: "dump.sql" });
         mocks.executeQueryOnDB
             .mockResolvedValueOnce([{ "Tables_in_clientdb": "t1" }, { "Tables_in_clientdb": "t2" }])
             .mockResolvedValueOnce([{ "COUNT(*)": 1 }])
@@ -119,5 +119,74 @@ describe("dumpDBMand", () => {
         expect(String(mocks.execSync.mock.calls[0]?.[0] ?? "")).toContain("--where=\"t1_mnr = '1'\"");
         expect(String(mocks.execSync.mock.calls[1]?.[0] ?? "")).toContain("--where=\"mand_mandant = '1'\"");
         expect(mocks.spinner.succeed).toHaveBeenCalledWith("Dumped DB to dump.sql");
+    });
+
+    it("rewrites mandant number when requested and dumps matching tables and mand", async () => {
+        mocks.prompts.mockImplementation(async (questions, options) => {
+            if (Array.isArray(questions)) {
+                const newMnrQuestion = questions.find((q: any) => q.name === "newMnr");
+                if (newMnrQuestion && typeof newMnrQuestion.type === "function") {
+                    expect(newMnrQuestion.type(null, { rewriteMnr: true })).toBe("number");
+                    expect(newMnrQuestion.type(null, { rewriteMnr: false })).toBeNull();
+                }
+            }
+            return { dbName: "clientdb", mnr: 1, rewriteMnr: true, newMnr: 2, dumpName: "dump.sql" };
+        });
+
+        mocks.executeQueryOnDB
+            .mockResolvedValueOnce([{ "Tables_in_clientdb": "t1" }, { "Tables_in_clientdb": "t2" }])
+            // t1: columnExists (1), dataExists for mnr 1 (1), UPDATE query, revert UPDATE query
+            .mockResolvedValueOnce([{ "COUNT(*)": 1 }])
+            .mockResolvedValueOnce([{ "COUNT(*)": 1 }])
+            .mockResolvedValueOnce([])
+            .mockResolvedValueOnce([])
+            // t2: columnExists (0)
+            .mockResolvedValueOnce([{ "COUNT(*)": 0 }])
+            // mand: UPDATE query, revert UPDATE query
+            .mockResolvedValueOnce([])
+            .mockResolvedValueOnce([]);
+
+        await dumpDBMand({});
+
+        expect(mocks.rmSync).toHaveBeenCalled();
+        expect(mocks.executeQueryOnDB).toHaveBeenCalledWith(
+            "UPDATE t1 SET t1_mnr = ? WHERE t1_mnr = ?;",
+            "clientdb",
+            2,
+            1
+        );
+        expect(mocks.executeQueryOnDB).toHaveBeenCalledWith(
+            "UPDATE t1 SET t1_mnr = ? WHERE t1_mnr = ?;",
+            "clientdb",
+            1,
+            2
+        );
+        expect(mocks.executeQueryOnDB).toHaveBeenCalledWith(
+            "UPDATE mand SET mand_mandant = ? WHERE mand_mandant = ?;",
+            "clientdb",
+            2,
+            1
+        );
+        expect(mocks.executeQueryOnDB).toHaveBeenCalledWith(
+            "UPDATE mand SET mand_mandant = ? WHERE mand_mandant = ?;",
+            "clientdb",
+            1,
+            2
+        );
+        expect(mocks.execSync).toHaveBeenCalledTimes(2);
+        expect(String(mocks.execSync.mock.calls[0]?.[0] ?? "")).toContain("--where=\"t1_mnr = '2'\"");
+        expect(String(mocks.execSync.mock.calls[1]?.[0] ?? "")).toContain("--where=\"mand_mandant = '2'\"");
+        expect(mocks.spinner.succeed).toHaveBeenCalledWith("Dumped DB to dump.sql");
+    });
+
+    it("aborts when initial prompt is cancelled", async () => {
+        mocks.prompts.mockImplementationOnce(async (_q, options) => {
+            options?.onCancel?.();
+            return {};
+        });
+
+        await dumpDBMand({});
+
+        expect(mocks.execSync).not.toHaveBeenCalled();
     });
 });
