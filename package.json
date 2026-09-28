@@ -21,7 +21,7 @@
   "repository": "https://github.com/intecoag/IntecoCLI",
   "dependencies": {
     "@azure/identity": "^4.13.3",
-    "@azure/storage-blob": "^12.33.0",
+    "@azure/storage-blob": "^12.34.0",
     "7zip-bin": "^5.2.0",
     "adb-ts": "^6.2.0",
     "application-config": "^3.0.0",
@@ -51,9 +51,9 @@
     "README.md"
   ],
   "devDependencies": {
-    "@commitlint/cli": "^21.2.2",
+    "@commitlint/cli": "^21.2.3",
     "@commitlint/config-conventional": "^21.0.2",
-    "@types/node": "^26.6.1",
+    "@types/node": "^26.6.2",
     "@types/node-7z": "^2.1.11",
     "@types/prompts": "^2.4.9",
     "@types/properties-parser": "^0.3.3",
@@ -61,7 +61,7 @@
     "@vitest/coverage-v8": "^5.0.1",
     "husky": "^9.1.7",
     "semantic-release": "^25.0.9",
-    "tsx": "^4.23.13",
+    "tsx": "^4.23.15",
     "typescript": "^7.0.2",
     "vitest": "^5.0.0"
   },
