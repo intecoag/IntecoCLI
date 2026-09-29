@@ -116,7 +116,12 @@ export default async function extdSearch(): Promise<void> {
 }
 
 registerCommand("extd_search", "Search EXTD/EXTI interactively with full text search", extdSearch, {
-    note: "This command opens its own interactive search shell; it does not accept --params.",
+    parameters: {
+        dbName: { type: "string", required: true, description: "Database name selected at runtime." },
+        tables: { type: "string", required: true, choices: ["EXTD/EXTI", "EXTD", "EXTI"], description: "Table source to search." },
+        commands: { type: "string[]", required: true, description: "Shell commands or search text to run in order (for example, [\"invoice\", \":fi\", \"address\"])." },
+    },
+    note: "In non-interactive mode, provide the database, table source, and an ordered commands array. Shell edit commands may require additional prompt parameters.",
 });
 
 function formatWert(value: unknown, bez: unknown): string {

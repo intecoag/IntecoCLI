@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Shell } from "./Shell.js";
+import { beginPromptSession, endPromptSession } from "../cliParams.js";
 
 const mocks = vi.hoisted(() => ({
     prompts: vi.fn()
@@ -78,5 +79,34 @@ describe("Shell", () => {
         await shell.run();
 
         expect(seen).toEqual([":hello"]);
+    });
+
+    it("runs an ordered command list in batch mode", async () => {
+        const shell = new Shell();
+        shell.name = "BatchShell";
+        const seen: string[] = [];
+        shell.commandHandlers = [
+            (s, input) => {
+                seen.push(input);
+                if (input === ":q") s.exit();
+                return true;
+            }
+        ];
+        beginPromptSession({ commands: [" search ", ":q", "ignored"] }, true);
+
+        await shell.run();
+
+        expect(seen).toEqual(["search", ":q"]);
+        expect(mocks.prompts).not.toHaveBeenCalled();
+        endPromptSession();
+    });
+
+    it("rejects unknown shell commands in batch mode", async () => {
+        const shell = new Shell();
+        shell.commandHandlers = [() => false];
+        beginPromptSession({ commands: ["unknown"] }, true);
+
+        await expect(shell.run()).rejects.toThrow("Unknown shell command 'unknown'.");
+        expect(() => endPromptSession()).not.toThrow();
     });
 });

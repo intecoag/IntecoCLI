@@ -28,6 +28,18 @@ inteco block_domain --params '{"actionType":"blockDomain","domain":"example.com"
 inteco adb_bridge --params-file ./adb-bridge-params.json
 ```
 
+Auch die Datenbank-Shell-Befehle koennen nicht-interaktiv ausgefuehrt werden.
+`commands` ist eine geordnete Liste von Shell-Eingaben (Suchbegriffen und
+Shell-Kommandos); `dbName` und `tables` ersetzen die anfaengliche Auswahl:
+
+```sh
+inteco t009_search --params '{"dbName":"wegas","tables":"T009","commands":["APP",":ow","PAYROLL"]}'
+inteco extd_search --params '{"dbName":"wegas","tables":"EXTD/EXTI","commands":["invoice",":fi","address"]}'
+```
+
+Shell-Bearbeitungsbefehle koennen zusaetzliche Prompt-Parameter benoetigen;
+mehrfach abgefragte Werte lassen sich wie bei anderen Befehlen als Array angeben.
+
 `--params-file -` liest JSON von stdin. Ohne Parameterdatei oder `--params`
 bleiben interaktive Terminals wie gewohnt interaktiv; ohne TTY wird eine
 fehlende Eingabe als Fehler gemeldet.

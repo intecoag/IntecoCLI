@@ -36,6 +36,8 @@ describe("command registry", () => {
         expect(getRegisteredCommand("block_domain")?.schema?.parameters?.actionType?.choices)
             .toEqual(["blockDomain", "unblockDomain"]);
         expect(renderCommandHelp(getRegisteredCommand("block_domain")!)).toContain("actionType (required; string");
+        expect(renderCommandHelp(getRegisteredCommand("t009_search")!)).toContain("commands (required; string[]");
+        expect(renderCommandHelp(getRegisteredCommand("extd_search")!)).toContain("EXTD/EXTI");
     });
 
     it("executes the registered handler without a central dispatch switch", async () => {

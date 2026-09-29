@@ -1,5 +1,5 @@
 ﻿import chalk from "chalk";
-import prompts from "../cliParams.js";
+import prompts, { CliInputError, isBatchPromptSession } from "../cliParams.js";
 
 export type ShellCommand = {
     name: string;
@@ -39,6 +39,29 @@ export class Shell {
         this.exitRequested = false;
 
         console.log(chalk.green(`${this.name} Started.`));
+
+        if (isBatchPromptSession()) {
+            const response = await prompts({
+                type: "list",
+                name: "commands",
+                message: "Shell commands",
+                validate: (commands: unknown) => Array.isArray(commands) && commands.length > 0 && commands.every(command => typeof command === "string")
+                    ? true
+                    : "Shell commands must be a non-empty array of strings.",
+            }) as { commands: string[] };
+
+            for (const command of response.commands) {
+                const input = command.trim();
+                if (!input) continue;
+                if (!await this.handleCommand(input)) {
+                    throw new CliInputError(`Unknown shell command '${input}'.`);
+                }
+                if (this.exitRequested) break;
+            }
+
+            console.log(chalk.yellow(`\n\n${this.name} Ended.`));
+            return;
+        }
 
         while (!this.exitRequested) {
             const response = await prompts({

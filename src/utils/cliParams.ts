@@ -24,6 +24,11 @@ export function beginPromptSession(values: ParameterValues | undefined, batch: b
         : { values: values ?? {}, batch, consumed: new Map() };
 }
 
+/** Whether prompts in the current command must be satisfied from CLI parameters. */
+export function isBatchPromptSession(): boolean {
+    return session?.batch ?? false;
+}
+
 /** Reject misspelled or inapplicable params once a command has finished. */
 export function endPromptSession(): void {
     if (!session) return;
