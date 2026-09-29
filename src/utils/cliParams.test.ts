@@ -63,6 +63,23 @@ describe("CLI parameter schemas", () => {
             .rejects.toThrow('Invalid type for "port": expected number.');
     });
 
+    it("preserves non-string values returned by select choices", async () => {
+        beginPromptSession({ tables: "EXTD/EXTI" }, true);
+
+        const answers = await prompts({
+            type: "select",
+            name: "tables",
+            message: "Search-Type?",
+            choices: [
+                { title: "EXTD/EXTI", value: ["extd", "exti"] },
+                { title: "EXTD", value: ["extd"] },
+            ],
+        });
+
+        expect(answers).toEqual({ tables: ["extd", "exti"] });
+        endPromptSession();
+    });
+
     it("reports unknown parameter names after command execution", () => {
         beginPromptSession({ typo: true }, true);
         expect(() => endPromptSession()).toThrow("Unknown or unused parameter: typo.");

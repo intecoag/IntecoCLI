@@ -110,7 +110,11 @@ export default async function prompt<T extends string = string>(
 
         if (!supplied) value = normalizeInitial(value, type);
         value = normalizeChoice(value, choices, type, name);
-        validateValue(value, type, name);
+        // Choice prompts return the selected choice's `value`, which may have
+        // a different type than the user-facing input (for example a string
+        // label can resolve to a string[] table list).
+        const hasChoiceValue = Array.isArray(choices) && (type === "select" || type === "autocomplete");
+        if (!hasChoiceValue) validateValue(value, type, name);
 
         if (type === "number") {
             const min = typeof question.min === "function" ? await question.min(previous, answers, question) : question.min;
