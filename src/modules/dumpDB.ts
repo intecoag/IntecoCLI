@@ -1,4 +1,5 @@
-﻿import prompts from "prompts"
+﻿import prompts from "../utils/cliParams.js"
+import { registerCommand } from "../utils/commandRegistry.js";
 import { rmSync } from "fs";
 import ora from "ora";
 import { DB } from "../utils/db/DB.js";
@@ -254,4 +255,24 @@ export async function dumpDBMand(_cli: unknown): Promise<void> {
         console.log();
     }
 }
+
+registerCommand("dump_db", "Dumps a DB-Export from local MYSQL-Instance (optionally with table selection or data only).", dumpDB, {
+    parameters: {
+        dbName: { type: "string", required: true, description: "Database name selected at runtime." },
+        dataOnly: { type: "boolean", default: false },
+        selectIndividualTables: { type: "boolean", default: false },
+        table: { type: "string | string[]", required: true, when: "selectIndividualTables is true", description: "Table name(s); repeated selections can be supplied as an array." },
+        continue: { type: "boolean | boolean[]", default: false, description: "For repeated table selection, use a boolean array with one value per table; scalar values are accepted only once." },
+        dumpName: { type: "string", default: "dump.sql" },
+    },
+});
+registerCommand("dump_db_mand", "Export a DB-Dump for a single Mandant", dumpDBMand, {
+    parameters: {
+        dbName: { type: "string", required: true, description: "Database name selected at runtime." },
+        mnr: { type: "number", default: 1 },
+        rewriteMnr: { type: "boolean", default: false },
+        newMnr: { type: "number", default: 1, when: "rewriteMnr is true" },
+        dumpName: { type: "string", default: "dump.sql" },
+    },
+});
 

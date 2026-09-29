@@ -1,4 +1,5 @@
-﻿import prompts from "prompts";
+﻿import prompts from "../utils/cliParams.js";
+import { registerCommand } from "../utils/commandRegistry.js";
 import chalk from "chalk";
 import { buildClientSchema, getIntrospectionQuery, printSchema } from "graphql"
 import { writeFileSync } from "fs";
@@ -69,4 +70,12 @@ export default async function qraphqlSchemaExport(): Promise<void> {
         }
     }
 }
+
+registerCommand("graphql_schema_export", "Dump the Graph-QL-Schema from an Endpoint", qraphqlSchemaExport, {
+    parameters: {
+        url: { type: "string", default: "http://localhost:8080/graphql" },
+        token: { type: "string", required: true },
+        file: { type: "string", default: "schema.graphqls" },
+    },
+});
 

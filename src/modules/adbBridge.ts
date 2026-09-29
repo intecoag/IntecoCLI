@@ -1,6 +1,7 @@
 ﻿import adb from "adb-ts";
 import chalk from "chalk";
-import prompts from "prompts";
+import prompts from "../utils/cliParams.js";
+import { registerCommand } from "../utils/commandRegistry.js";
 
 
 export default async function adb_bridge(): Promise<void> {
@@ -44,4 +45,11 @@ export default async function adb_bridge(): Promise<void> {
     }
 
 }
+
+registerCommand("adb_bridge", "Activates an ADB-Bridge-Connection to an Android-Device", adb_bridge, {
+    parameters: {
+        device: { type: "string", required: true, description: "ADB device id." },
+        port: { type: "number", default: 3000 },
+    },
+});
 

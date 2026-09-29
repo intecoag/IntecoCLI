@@ -3,7 +3,7 @@ import { Shell } from "./Shell.js";
 import { DB } from "../db/DB.js";
 import fuzzysort from "fuzzysort";
 import CliTable3 from "cli-table3";
-import prompts from "prompts";
+import prompts from "../cliParams.js";
 import { type PromptObject } from "prompts";
 import { type TableConfig, type TableSource } from "./DatabaseShellBuilder.js";
 import { ExecuteValues } from "mysql2";

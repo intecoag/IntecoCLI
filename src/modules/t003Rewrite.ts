@@ -1,5 +1,6 @@
 ﻿import chalk from "chalk";
-import prompts from "prompts";
+import prompts from "../utils/cliParams.js";
+import { registerCommand } from "../utils/commandRegistry.js";
 import { Config } from "../utils/config/config.js";
 import { DB } from "../utils/db/DB.js";
 
@@ -91,3 +92,11 @@ export default async function t003Rewrite(_cli: unknown): Promise<void> {
         console.log()
     }
 }
+
+registerCommand("t003_rewrite", "Rewrites t003 in DB", t003Rewrite, {
+    parameters: {
+        dbName: { type: "string", required: true, description: "Database name selected at runtime." },
+        mnr: { type: "string", required: true, description: "Mandant number selected at runtime, or ALL." },
+        username: { type: "string", required: true, description: "Existing username selected at runtime." },
+    },
+});

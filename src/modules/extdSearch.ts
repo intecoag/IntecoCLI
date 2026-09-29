@@ -1,4 +1,5 @@
 ﻿import { DatabaseShellBuilder, TableConfig } from "../utils/shell/DatabaseShellBuilder.js";
+import { registerCommand } from "../utils/commandRegistry.js";
 
 type ExtdRow = {
     mnr?: string;
@@ -113,6 +114,10 @@ export default async function extdSearch(): Promise<void> {
     const shell = builder.build();
     await shell.run();
 }
+
+registerCommand("extd_search", "Search EXTD/EXTI interactively with full text search", extdSearch, {
+    note: "This command opens its own interactive search shell; it does not accept --params.",
+});
 
 function formatWert(value: unknown, bez: unknown): string {
     return value || bez ? `'${value}'='${bez}'` : '';

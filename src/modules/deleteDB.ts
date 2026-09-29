@@ -1,4 +1,5 @@
-﻿import prompts from "prompts"
+﻿import prompts from "../utils/cliParams.js"
+import { registerCommand } from "../utils/commandRegistry.js";
 import { rmSync } from "fs";
 import ora from "ora";
 import { DB } from "../utils/db/DB.js";
@@ -95,4 +96,11 @@ export default async function deleteDBMand(_cli: unknown): Promise<void> {
         console.log();
     }
 }
+
+registerCommand("delete_db_mand", "Delete all Mandant-Data from a db", deleteDBMand, {
+    parameters: {
+        dbName: { type: "string", required: true, description: "Database name selected at runtime." },
+        mnr: { type: "number", default: 1 },
+    },
+});
 

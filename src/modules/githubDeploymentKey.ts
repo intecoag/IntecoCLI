@@ -1,4 +1,5 @@
-﻿import prompts from 'prompts';
+﻿import prompts from '../utils/cliParams.js';
+import { registerCommand } from "../utils/commandRegistry.js";
 import chalk from 'chalk';
 import ora from 'ora';
 import { execSync } from 'child_process';
@@ -271,5 +272,15 @@ function displayCloneCommand(organization: string, repository: string) {
 }
 
 export default addGithubDeploymentKey;
+
+registerCommand("github_add_deploy_key", "Workflow to add a deployment key to a GitHub repository for a remote server (requires GitHub CLI)", addGithubDeploymentKey, {
+    parameters: {
+        organization: { type: "string", default: "intecoag" },
+        repository: { type: "string", required: true, description: "Repository selected from the organization's repositories at runtime." },
+        publicKey: { type: "string", required: true },
+        keyName: { type: "string", required: true },
+    },
+    note: "Authentication must be available through GitHub CLI or GITHUB_TOKEN.",
+});
 
 

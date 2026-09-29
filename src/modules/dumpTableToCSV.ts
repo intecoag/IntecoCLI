@@ -1,6 +1,7 @@
 ﻿import fs from "fs";
 import nReadlines from 'n-readlines';
-import prompts from "prompts";
+import prompts from "../utils/cliParams.js";
+import { registerCommand } from "../utils/commandRegistry.js";
 import path from "path";
 import ora from "ora";
 import Seven from 'node-7z'
@@ -169,4 +170,10 @@ export function parseInsertRecords(data: string): string[] {
 
     return records;
 }
+
+registerCommand("dump_table_to_csv", "Dumps a specific table from multiple SQL-Exports to a CSV", dumpTableToCSV, {
+    parameters: {
+        table: { type: "string", required: true },
+    },
+});
 

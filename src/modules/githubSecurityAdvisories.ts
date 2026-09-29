@@ -1,4 +1,5 @@
-﻿import prompts from 'prompts';
+﻿import prompts from '../utils/cliParams.js';
+import { registerCommand } from "../utils/commandRegistry.js";
 import chalk from 'chalk';
 import Table from 'cli-table3';
 import ora from 'ora';
@@ -178,5 +179,11 @@ async function fetchSecurityAdvisories(organization: string, repository: string,
 }
 
 export default githubSecurityAdvisories;
+
+registerCommand("github_security_advisories", "Checks all GitHub repositories in an organization for open and unresolved security advisories (requires GitHub CLI or GITHUB_TOKEN)", githubSecurityAdvisories, {
+    parameters: {
+        organization: { type: "string", default: "intecoag" },
+    },
+});
 
 

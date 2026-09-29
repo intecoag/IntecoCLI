@@ -1,4 +1,5 @@
-﻿import prompts from "prompts";
+﻿import prompts from "../utils/cliParams.js";
+import { registerCommand } from "../utils/commandRegistry.js";
 import chalk from "chalk";
 import { Config } from "../utils/config/config.js";
 import FS from "fs"
@@ -354,7 +355,6 @@ export function mergeOverwriteNodes(fromNode: any, toNode: any): boolean {
     return false;
 }
 
-
 function nodeToJs(node: unknown): unknown {
     if (node && typeof node === "object") {
         const withToJson = node as { toJSON?: () => unknown };
@@ -368,4 +368,15 @@ function nodeToJs(node: unknown): unknown {
 function deepEqual(a: unknown, b: unknown): boolean {
     return JSON.stringify(a) === JSON.stringify(b);
 }
+
+registerCommand("config_mutation", "Synchronize Configs with new/changed properties", mutateConfig, {
+    parameters: {
+        mergeType: { type: "string", required: true, choices: ["only_create", "create_update_overwrite", "remove_missing"] },
+        mergeClients: { type: "boolean", default: false },
+        configDest: { type: "string", required: true, description: "Target config directory, or * for all." },
+        dryRun: { type: "boolean", default: false },
+        file: { type: "string | string[]", required: true, description: "Source file selection from the config/yaml directory; use . to select the directory contents." },
+        confirmation: { type: "boolean", default: true, when: "dryRun is true" },
+    },
+});
 

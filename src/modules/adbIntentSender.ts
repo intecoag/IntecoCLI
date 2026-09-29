@@ -1,6 +1,7 @@
 ﻿import adb from "adb-ts";
 import chalk from "chalk";
-import prompts from "prompts";
+import prompts from "../utils/cliParams.js";
+import { registerCommand } from "../utils/commandRegistry.js";
 
 export default async function adb_intent(): Promise<void> {
 
@@ -73,4 +74,13 @@ export default async function adb_intent(): Promise<void> {
     }
 
 }
+
+registerCommand("adb_intent", "Sends a configurable Intent to an Android-Device", adb_intent, {
+    parameters: {
+        device: { type: "string", required: true, description: "ADB device id." },
+        action: { type: "string", required: true, choices: ["ch.inteco.orderprep.action.BARCODE_DATA"] },
+        data: { type: "string", default: "1" },
+        codeId: { type: "string", required: true, choices: ["s", "d"], description: "s = QR-Code; d = EAN13." },
+    },
+});
 

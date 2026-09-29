@@ -1,4 +1,5 @@
-﻿import prompts from "prompts";
+﻿import prompts from "../utils/cliParams.js";
+import { registerCommand } from "../utils/commandRegistry.js";
 import { Config, type CLIConfig } from "../utils/config/config.js";
 import chalk from "chalk";
 
@@ -31,4 +32,11 @@ export default async function writeCLIConfig(): Promise<void> {
         await Config.setConfig({ ...data, ...responses })
     }
 }
+
+registerCommand("set_cli_config", "Configure the Inteco CLI", writeCLIConfig, {
+    parameters: {
+        "<config key>": { type: "string", description: "One optional parameter per key currently present in the CLI config; values default to the existing config." },
+    },
+    note: "The accepted parameter names depend on the current CLI config.",
+});
 

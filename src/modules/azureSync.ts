@@ -2,7 +2,8 @@
 import crypto from "crypto";
 import fs from "fs";
 import path from "path";
-import prompts from "prompts";
+import prompts from "../utils/cliParams.js";
+import { registerCommand } from "../utils/commandRegistry.js";
 import YAML from "yaml";
 import ora from "ora";
 import { AzureHelper } from "../utils/azure/azure.js";
@@ -629,4 +630,22 @@ export function formatBytes(bytes: number): string {
     const value = bytes / Math.pow(1024, index);
     return `${value.toFixed(value >= 10 || index === 0 ? 0 : 1)} ${units[index]}`;
 }
+
+registerCommand("azure_sync_config", "Creates or updates the .az-sync configuration file (requires Azure-CLI)", azureCreateSyncConfig, {
+    parameters: {
+        storageAccount: { type: "string", description: "Defaults to the existing value or configured account." },
+        container: { type: "string", description: "Defaults to the existing value or an empty string." },
+        includes: { type: "string", description: "Comma-separated patterns; defaults to existing values or an empty string." },
+    },
+});
+registerCommand("azure_sync_push", "Pushes local files to Azure Blob Storage using checksum comparison (requires Azure-CLI)", azurePush, {
+    parameters: {
+        proceed: { type: "boolean", default: false, description: "Confirmation is requested only when there are planned changes." },
+    },
+});
+registerCommand("azure_sync_pull", "Pulls blobs to local files using checksum comparison (requires Azure-CLI)", azurePull, {
+    parameters: {
+        proceed: { type: "boolean", default: false, description: "Confirmation is requested only when there are planned changes." },
+    },
+});
 
