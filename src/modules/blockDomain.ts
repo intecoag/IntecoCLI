@@ -1,5 +1,6 @@
 import chalk from "chalk";
-import prompts from "prompts";
+import prompts from "../utils/cliParams.js";
+import { registerCommand } from "../utils/commandRegistry.js";
 import { Config } from "../utils/config/config.js";
 import { DB } from "../utils/db/DB.js";
 import { readFile } from "fs/promises";
@@ -129,3 +130,10 @@ async function writeHostFile(hostFileContent: string) : Promise<boolean> {
         });
     });
 }
+
+registerCommand("block_domain", "Blocks or unblocks a domain by editing the hosts file. Helpful for testing and development purposes with jWEGAS interfaces (requires elevated privileges).", blockDomain, {
+    parameters: {
+        actionType: { type: "string", required: true, choices: ["blockDomain", "unblockDomain"] },
+        domain: { type: "string | number", required: true, when: "actionType is blockDomain or unblockDomain", description: "A domain name to block; for unblock, choose the displayed hosts-file line (its numeric line index)." },
+    },
+});

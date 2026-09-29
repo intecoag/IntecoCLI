@@ -1,4 +1,5 @@
 ﻿import { DatabaseShellBuilder, TableConfig } from "../utils/shell/DatabaseShellBuilder.js";
+import { registerCommand } from "../utils/commandRegistry.js";
 
 type T009Row = {
     mnr?: string;
@@ -46,4 +47,13 @@ export default async function t009Search(): Promise<void> {
     const shell = builder.build();
     await shell.run();
 }
+
+registerCommand("t009_search", "Search t009 interactively with full text search", t009Search, {
+    parameters: {
+        dbName: { type: "string", required: true, description: "Database name selected at runtime." },
+        tables: { type: "string", required: true, choices: ["T009"], description: "Table source to search." },
+        commands: { type: "string[]", required: true, description: "Shell commands or search text to run in order (for example, [\"APP\", \":ow\", \"PAYROLL\"])." },
+    },
+    note: "In non-interactive mode, provide the database, table source, and an ordered commands array. Shell edit commands may require additional prompt parameters.",
+});
 

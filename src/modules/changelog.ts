@@ -1,4 +1,5 @@
 ﻿import chalk from 'chalk';
+import { registerCommand } from "../utils/commandRegistry.js";
 
 const OWNER = 'intecoag';
 const REPO = 'IntecoCLI';
@@ -64,4 +65,6 @@ async function showChangelog(): Promise<void> {
 }
 
 export default showChangelog;
+
+registerCommand("changelog", "Shows the changelog history", showChangelog);
 

@@ -1,4 +1,5 @@
-﻿import prompts from "prompts";
+﻿import prompts from "../utils/cliParams.js";
+import { registerCommand } from "../utils/commandRegistry.js";
 import { mkdirSync, existsSync, readdirSync, rmSync, copyFileSync } from "fs";
 import path from "path";
 import chalk from "chalk";
@@ -223,6 +224,18 @@ export default async function syncConfig() {
         console.log();
     }
 }
+
+registerCommand("sync_config", "Synchronize Config/ConfigIndividual-Folders between Work and Repository (Eclipse-Repo)", syncConfig, {
+    parameters: {
+        direction: { type: "string", required: true, choices: ["import", "export", "import_config", "export_config", "import_all", "export_all", "import_all_individuals", "export_all_individuals", "sync_to_configIndividual"] },
+        configNameSource: { type: "string", required: true, when: "direction is import or export" },
+        configNameTarget: { type: "string", required: true, when: "direction is import or export" },
+        configIndividualSelection: { type: "string", required: true, when: "direction is sync_to_configIndividual" },
+        dryRun: { type: "boolean", default: false },
+        type: { type: "string", required: true, choices: ["UPDATE", "CREATE_IF_NOT_EXISTS", "OVERWRITE"], description: "CREATE_IF_NOT_EXISTS is offered for sync_to_configIndividual; other directions offer UPDATE and OVERWRITE." },
+        confirmation: { type: "boolean", default: true, when: "dryRun is true" },
+    },
+});
 
 function processSyncToIndividual(dryRun: boolean, sourceFiles: string[], targetConfigIndividual: string, configPath: string, overwrite: boolean) {
     console.log();

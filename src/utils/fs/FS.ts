@@ -1,7 +1,7 @@
 ﻿import { statSync, mkdirSync, existsSync, copyFileSync, readdirSync } from "fs";
 import chalk from "chalk";
 import path from "path";
-import prompts from "prompts";
+import prompts from "../cliParams.js";
 
 type CopyUpdatedStats = { added: number; updated: number };
 type CopyAllStats = { copied: number };

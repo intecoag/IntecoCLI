@@ -1,4 +1,5 @@
 ﻿import { DatabaseShellBuilder, TableConfig } from "../utils/shell/DatabaseShellBuilder.js";
+import { registerCommand } from "../utils/commandRegistry.js";
 
 type ExtdRow = {
     mnr?: string;
@@ -113,6 +114,15 @@ export default async function extdSearch(): Promise<void> {
     const shell = builder.build();
     await shell.run();
 }
+
+registerCommand("extd_search", "Search EXTD/EXTI interactively with full text search", extdSearch, {
+    parameters: {
+        dbName: { type: "string", required: true, description: "Database name selected at runtime." },
+        tables: { type: "string", required: true, choices: ["EXTD/EXTI", "EXTD", "EXTI"], description: "Table source to search." },
+        commands: { type: "string[]", required: true, description: "Shell commands or search text to run in order (for example, [\"invoice\", \":fi\", \"address\"])." },
+    },
+    note: "In non-interactive mode, provide the database, table source, and an ordered commands array. Shell edit commands may require additional prompt parameters.",
+});
 
 function formatWert(value: unknown, bez: unknown): string {
     return value || bez ? `'${value}'='${bez}'` : '';

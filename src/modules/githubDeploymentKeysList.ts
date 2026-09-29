@@ -1,4 +1,5 @@
-﻿import prompts from 'prompts';
+﻿import prompts from '../utils/cliParams.js';
+import { registerCommand } from "../utils/commandRegistry.js";
 import chalk from 'chalk';
 import ora from 'ora';
 import Table from 'cli-table3';
@@ -220,5 +221,12 @@ export async function listGithubDeploymentKeys() {
 }
 
 export default listGithubDeploymentKeys;
+
+registerCommand("github_list_deploy_keys", "Lists all deployment keys across all repositories in a GitHub organization with their last used dates (requires GitHub CLI or GITHUB_TOKEN)", listGithubDeploymentKeys, {
+    parameters: {
+        organization: { type: "string", default: "intecoag" },
+    },
+    note: "Authentication must be available through GitHub CLI or GITHUB_TOKEN.",
+});
 
 

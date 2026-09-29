@@ -2,7 +2,8 @@
 import Seven from 'node-7z'
 import sevenBin from '7zip-bin'
 import { Config } from "../utils/config/config.js";
-import prompts from "prompts";
+import prompts from "../utils/cliParams.js";
+import { registerCommand } from "../utils/commandRegistry.js";
 import chalk from "chalk";
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
@@ -162,6 +163,15 @@ export default async function bundleProduct(_cli: unknown): Promise<void> {
         console.log()
     }
 }
+
+registerCommand("bundle_product", "Bundles the jWEGAS-Product after an Eclipse-Export", bundleProduct, {
+    parameters: {
+        folder: { type: "string", default: "eclipse", description: "Product directory selected from the current directory." },
+        configIndividual: { type: "string", required: true, description: "ConfigIndividual directory selected at runtime." },
+        ram: { type: "string", default: "8", description: "Numeric Xmx value in GB." },
+        folderName: { type: "string", default: "eclipse" },
+    },
+});
 
 function getPromiseFromEvent<T = unknown>(item: { on: (event: string, listener: (data: T) => void) => void }, event: string): Promise<T> {
     return new Promise((resolve) => {

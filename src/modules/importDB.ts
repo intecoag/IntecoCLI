@@ -1,4 +1,5 @@
-﻿import prompts from "prompts"
+﻿import prompts from "../utils/cliParams.js"
+import { registerCommand } from "../utils/commandRegistry.js";
 import { readdirSync, mkdirSync, renameSync, rmSync, copyFileSync } from "fs";
 import Seven from 'node-7z'
 import ora from "ora";
@@ -87,6 +88,14 @@ export default async function importDB(_cli: unknown): Promise<void> {
         }
     }
 }
+
+registerCommand("import_db", "Imports a DB-Export (in Archive) to the local MYSQL-Instance", importDB, {
+    parameters: {
+        file: { type: "string", required: true, description: "Dump/archive file selected from the current directory." },
+        dbName: { type: "string", required: true },
+        dropDB: { type: "boolean", default: true },
+    },
+});
 
 function isArchive(file: string): Promise<boolean> {
     return new Promise((resolve) => {

@@ -1,4 +1,5 @@
-﻿import prompts from "prompts";
+﻿import prompts from "../utils/cliParams.js";
+import { registerCommand } from "../utils/commandRegistry.js";
 import os from 'os';
 import { createEditor } from "properties-parser";
 import { writeFileSync, readFileSync, readdirSync } from "fs";
@@ -95,4 +96,13 @@ async function configRewrite(_cli: unknown): Promise<void> {
 }
 
 export default configRewrite;
+
+registerCommand("config_rewrite", "Rewrites WEGAS-Config", configRewrite, {
+    parameters: {
+        dbName: { type: "string", required: true, description: "Database name; selected from databases available at runtime." },
+        configName: { type: "string", required: true, description: "ConfigIndividual directory selected at runtime." },
+        mnr: { type: "number", default: 1 },
+        language: { type: "string", required: true, choices: ["?", "d", "f", "i"], description: "? leaves the language unchanged." },
+    },
+});
 

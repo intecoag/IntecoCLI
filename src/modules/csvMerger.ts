@@ -1,7 +1,8 @@
 ﻿import chalk from 'chalk';
 import csv from 'csv-parser';
 import fs from "fs";
-import prompts from "prompts";
+import prompts from "../utils/cliParams.js";
+import { registerCommand } from "../utils/commandRegistry.js";
 
 export default async function csvMerge() {
     console.log()
@@ -116,4 +117,14 @@ export default async function csvMerge() {
 
 
 }
+
+registerCommand("csv_merge", "Merge multiple CSV-Files (with same headers) into single file (with optional filter)", csvMerge, {
+    parameters: {
+        output: { type: "string", default: "results.csv" },
+        useFilter: { type: "boolean", default: false },
+        filtertype: { type: "string", required: true, choices: ["eq", "neq"], when: "useFilter is true" },
+        filterfield: { type: "string", required: true, when: "useFilter is true" },
+        filtervalue: { type: "string", required: true, when: "useFilter is true" },
+    },
+});
 

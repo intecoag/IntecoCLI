@@ -9,7 +9,6 @@ const src = path.join(root, "src");
 const dist = path.join(root, "dist");
 
 const assetPaths = [
-  ["ressources", "cmds.json"],
   ["ressources", "wegas_p.ico"],
   ["utils", "config", "default.json"]
 ];
