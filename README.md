@@ -37,6 +37,16 @@ inteco t009_search --params '{"dbName":"wegas","tables":"T009","commands":["APP"
 inteco extd_search --params '{"dbName":"wegas","tables":"EXTD/EXTI","commands":["invoice",":fi","address"]}'
 ```
 
+`execute_sql` runs a SQL statement using the database connection in the current
+CLI settings. The database is optional for server-level statements such as
+`CREATE DATABASE`; query results are printed as a table.
+
+```sh
+inteco execute_sql --params '{"dbName":"wegas","query":"SELECT * FROM T009 LIMIT 10"}'
+```
+
+Use care with statements that modify or delete data.
+
 Shell-Bearbeitungsbefehle koennen zusaetzliche Prompt-Parameter benoetigen;
 mehrfach abgefragte Werte lassen sich wie bei anderen Befehlen als Array angeben.
 

@@ -91,6 +91,18 @@ describe("DB", () => {
         expect(mocks.connection.execute).toHaveBeenCalledWith("SELECT * FROM users WHERE user_id = ?", [123]);
     });
 
+    it("executeSQL runs a raw statement and returns its result", async () => {
+        const resultHeader = { affectedRows: 2 };
+        mocks.connection.query.mockResolvedValue([resultHeader, []]);
+
+        const result = await DB.executeSQL("UPDATE users SET active = 0", "mandant_db");
+
+        expect(mocks.createConnection).toHaveBeenCalledWith(expect.objectContaining({ database: "mandant_db" }));
+        expect(mocks.connection.query).toHaveBeenCalledWith("UPDATE users SET active = 0");
+        expect(result).toBe(resultHeader);
+        expect(mocks.connection.end).toHaveBeenCalledTimes(1);
+    });
+
     it("closes connection even when query fails", async () => {
         mocks.connection.execute.mockRejectedValue(new Error("boom"));
 

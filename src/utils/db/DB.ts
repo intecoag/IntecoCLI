@@ -51,6 +51,17 @@ export class DB {
         return await this.runQuery(query, db, params);
     }
 
+    static async executeSQL(query: string, db: string | null = null): Promise<unknown> {
+        await this.connect(db);
+
+        try {
+            const [result] = await this.getConnection().query(query);
+            return result;
+        } finally {
+            await this.closeConnection();
+        }
+    }
+
     static async getDatabaseNames(): Promise<Array<{ name: string }>> {
         await this.connect(null);
 
