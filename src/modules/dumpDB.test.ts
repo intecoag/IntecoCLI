@@ -44,7 +44,7 @@ describe("dumpDB", () => {
         mocks.getDatabaseNames.mockResolvedValue([{ name: "clientdb" }]);
     });
 
-    it("executes mysqldump command", async () => {
+    it("executes mariadb-dump command", async () => {
         mocks.prompts
             .mockResolvedValueOnce({ dbName: "clientdb", dataOnly: true, selectIndividualTables: false })
             .mockResolvedValueOnce({ dumpName: "dump.sql" });
@@ -54,10 +54,37 @@ describe("dumpDB", () => {
 
         expect(mocks.exec).toHaveBeenCalledTimes(1);
         const command = String(mocks.exec.mock.calls[0]?.[0] ?? "");
-        expect(command).toContain("mysqldump");
+        expect(command).toContain("mariadb-dump");
         expect(command).toContain("--no-create-info");
         expect(command).toContain("clientdb");
         expect(command).toContain("> dump.sql");
+    });
+
+    it("executes mysqldump command when mariadb-dump fails", async () => {
+        mocks.prompts
+            .mockResolvedValueOnce({ dbName: "clientdb", dataOnly: true, selectIndividualTables: false })
+            .mockResolvedValueOnce({ dumpName: "dump.sql" });
+        mocks.exec
+            .mockImplementationOnce((_cmd: string, cb: (e: Error | null) => void) =>
+                cb(new Error("mariadb-dump failed"))
+            )
+            .mockImplementation((cmd: string, cb: (e: Error | null) => void) => cb(null));
+
+        await dumpDB({});
+
+        expect(mocks.exec).toHaveBeenCalledTimes(2);
+
+        const command1 = String(mocks.exec.mock.calls[0]?.[0] ?? "");
+        expect(command1).toContain("mariadb-dump");
+        expect(command1).toContain("--no-create-info");
+        expect(command1).toContain("clientdb");
+        expect(command1).toContain("> dump.sql");
+
+        const command2 = String(mocks.exec.mock.calls[1]?.[0] ?? "");
+        expect(command2).toContain("mysqldump");
+        expect(command2).toContain("--no-create-info");
+        expect(command2).toContain("clientdb");
+        expect(command2).toContain("> dump.sql");
     });
 
     it("dumps selected tables when requested", async () => {
