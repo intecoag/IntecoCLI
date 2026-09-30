@@ -114,17 +114,25 @@ export async function dumpDB(_cli: unknown): Promise<void> {
             console.log()
             const spinner = ora('Dumping DB').start();
 
-            const dumpCommand = `mariadb-dump ${resultsDB.dataOnly?'--no-create-info':''} -u${config.dbUser} -p${config.dbPassword} -h${config.dbURL} ${resultsDB.dbName} ${selectedTables.join(" ")} > ${results.dumpName}`;
+            const commandArgs = `${resultsDB.dataOnly?'--no-create-info':''} -u${config.dbUser} -p${config.dbPassword} -h${config.dbURL} ${resultsDB.dbName} ${selectedTables.join(" ")} > ${results.dumpName}`;
 
-            exec(dumpCommand, (error) => {
-                if (error) {
-                    spinner.fail('Failed to dump DB');
-                    console.error(error);
+            exec(`mariadb-dump ${commandArgs}`, (error) => {
+                if (!error) {
+                    spinner.succeed("Dumped DB to " + results.dumpName);
+                    console.log();
                     return;
                 }
 
-                spinner.succeed("Dumped DB to " + results.dumpName);
-                console.log();
+                exec(`mysqldump ${commandArgs}`, (error) => {
+                    if (!error) {
+                        spinner.succeed("Dumped DB to " + results.dumpName);
+                        console.log();
+                        return;
+                    }
+                    
+                    spinner.fail('Failed to dump DB');
+                    console.error(error);
+                });
             });
         }
     }
@@ -218,8 +226,15 @@ export async function dumpDBMand(_cli: unknown): Promise<void> {
                         }
 
                         try {
+
+                            let commandArgs = "-u" + config.dbUser + " -p" + config.dbPassword + " -h" + config.dbURL + " --no-create-info --where=\"" + tableCol + " = '" + dumpMnr + "'\" " + results.dbName + " " + table + " >> " + results.dumpName;
+
                             // Dump table
-                            execSync("mariadb-dump -u" + config.dbUser + " -p" + config.dbPassword + " -h" + config.dbURL + " --no-create-info --where=\"" + tableCol + " = '" + dumpMnr + "'\" " + results.dbName + " " + table + " >> " + results.dumpName);
+                            try {
+                                execSync("mariadb-dump " + commandArgs);
+                            } catch (err) {
+                                execSync("mysqldump " + commandArgs);
+                            }
 
                             tableSpinner.succeed("Data dumped: " + table);
                         } finally {
@@ -241,7 +256,15 @@ export async function dumpDBMand(_cli: unknown): Promise<void> {
             }
 
             try {
-                execSync("mariadb-dump -u" + config.dbUser + " -p" + config.dbPassword + " -h" + config.dbURL + " --no-create-info --where=\"mand_mandant = '" + dumpMnr + "'\" " + results.dbName + " mand >> " + results.dumpName);
+
+                let commandArgs = "-u" + config.dbUser + " -p" + config.dbPassword + " -h" + config.dbURL + " --no-create-info --where=\"mand_mandant = '" + dumpMnr + "'\" " + results.dbName + " mand >> " + results.dumpName;
+
+                try {
+                    execSync("mariadb-dump " + commandArgs);
+                } catch(err) {
+                    execSync("mysqldump " + commandArgs);
+                }
+
                 tableSpinner.succeed("Data dumped: mand")
             } finally {
                 if (results.rewriteMnr) {
