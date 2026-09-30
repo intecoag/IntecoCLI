@@ -114,7 +114,7 @@ export async function dumpDB(_cli: unknown): Promise<void> {
             console.log()
             const spinner = ora('Dumping DB').start();
 
-            const dumpCommand = `mysqldump ${resultsDB.dataOnly?'--no-create-info':''} -u${config.dbUser} -p${config.dbPassword} -h${config.dbURL} ${resultsDB.dbName} ${selectedTables.join(" ")} > ${results.dumpName}`;
+            const dumpCommand = `mariadb-dump ${resultsDB.dataOnly?'--no-create-info':''} -u${config.dbUser} -p${config.dbPassword} -h${config.dbURL} ${resultsDB.dbName} ${selectedTables.join(" ")} > ${results.dumpName}`;
 
             exec(dumpCommand, (error) => {
                 if (error) {
@@ -219,7 +219,7 @@ export async function dumpDBMand(_cli: unknown): Promise<void> {
 
                         try {
                             // Dump table
-                            execSync("mysqldump -u" + config.dbUser + " -p" + config.dbPassword + " -h" + config.dbURL + " --no-create-info --where=\"" + tableCol + " = '" + dumpMnr + "'\" " + results.dbName + " " + table + " >> " + results.dumpName);
+                            execSync("mariadb-dump -u" + config.dbUser + " -p" + config.dbPassword + " -h" + config.dbURL + " --no-create-info --where=\"" + tableCol + " = '" + dumpMnr + "'\" " + results.dbName + " " + table + " >> " + results.dumpName);
 
                             tableSpinner.succeed("Data dumped: " + table);
                         } finally {
@@ -241,7 +241,7 @@ export async function dumpDBMand(_cli: unknown): Promise<void> {
             }
 
             try {
-                execSync("mysqldump -u" + config.dbUser + " -p" + config.dbPassword + " -h" + config.dbURL + " --no-create-info --where=\"mand_mandant = '" + dumpMnr + "'\" " + results.dbName + " mand >> " + results.dumpName);
+                execSync("mariadb-dump -u" + config.dbUser + " -p" + config.dbPassword + " -h" + config.dbURL + " --no-create-info --where=\"mand_mandant = '" + dumpMnr + "'\" " + results.dbName + " mand >> " + results.dumpName);
                 tableSpinner.succeed("Data dumped: mand")
             } finally {
                 if (results.rewriteMnr) {

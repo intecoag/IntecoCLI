@@ -44,7 +44,7 @@ describe("dumpDB", () => {
         mocks.getDatabaseNames.mockResolvedValue([{ name: "clientdb" }]);
     });
 
-    it("executes mysqldump command", async () => {
+    it("executes mariadb-dump command", async () => {
         mocks.prompts
             .mockResolvedValueOnce({ dbName: "clientdb", dataOnly: true, selectIndividualTables: false })
             .mockResolvedValueOnce({ dumpName: "dump.sql" });
@@ -54,7 +54,7 @@ describe("dumpDB", () => {
 
         expect(mocks.exec).toHaveBeenCalledTimes(1);
         const command = String(mocks.exec.mock.calls[0]?.[0] ?? "");
-        expect(command).toContain("mysqldump");
+        expect(command).toContain("mariadb-dump");
         expect(command).toContain("--no-create-info");
         expect(command).toContain("clientdb");
         expect(command).toContain("> dump.sql");
