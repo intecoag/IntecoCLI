@@ -51,7 +51,7 @@
     "README.md"
   ],
   "devDependencies": {
-    "@commitlint/cli": "^21.2.3",
+    "@commitlint/cli": "^21.2.4",
     "@commitlint/config-conventional": "^21.0.2",
     "@types/node": "^26.6.5",
     "@types/node-7z": "^2.1.11",
